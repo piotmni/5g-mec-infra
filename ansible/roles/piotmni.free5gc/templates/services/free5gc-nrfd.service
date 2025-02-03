@@ -1,0 +1,19 @@
+[Unit]
+Description=Free5gc nrf NF
+PartOf=free5gc-core.target
+After=free5gc-core.target
+
+[Service]
+Type=simple
+
+User=free5gc
+Group=free5gc
+
+Restart=always
+
+ExecStart=/usr/bin/free5gc-nrf -c /etc/free5gc/nrf.yaml -l /var/log/free5gc/nrf.log
+RestartSec=2
+ExecReload=/bin/kill -HUP $MAINPID
+
+[Install]
+WantedBy=free5gc-core.target

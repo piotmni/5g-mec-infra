@@ -1,0 +1,12 @@
+---
+# based on group vars
+#control_plane_node: True
+#user_plane_node: False
+open5gs_node_type: "control"
+firewall_ports:
+  - { to_port: 1081, zone: home } # telegraf
+  - { to_port: 3000, zone: home } # webui
+  - { to_port: 2152, zone: home, proto: udp } # gtpu smf
+  - { to_port: 8805, zone: home, proto: udp } # pfcp smf
+  - { to_port: 51820, zone: public, proto: udp } # wireguard
+

@@ -1,0 +1,15 @@
+---
+#control_plane_node: False
+#user_plane_node: True
+open5gs_node_type: "user"
+
+firewall_ports:
+  - { to_port: 1081, zone: home } # telegraf
+  - { to_port: 2152, zone: home, proto: udp } # gtpu
+  - { to_port: 2152, interface: wg0, proto: udp } # for wg
+  - { to_port: 8805, zone: home, proto: udp } # pfcp
+  - { to_port: 51820, zone: public, proto: udp } # wireguard
+
+firewall_route_ports:
+  - { interface_in: "ogstun", interface_out: "{{ ansible_local.network_interfaces.public_interface }}" }
+  - { interface_in: "ogstun", interface_out: "{{ ansible_local.network_interfaces.private_interface }}" }

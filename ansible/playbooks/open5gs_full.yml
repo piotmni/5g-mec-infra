@@ -1,0 +1,43 @@
+---
+- hosts:
+    - open5gs
+  become: yes
+  serial: 1
+  vars:
+    network_enable_ip_forwarding: yes
+
+
+    firewall_ports:
+      - { to_port: 1081, zone: home } # telegraf
+      - { to_port: 3000, zone: home } # webui
+      - { to_port: 51820, zone: public, proto: udp } # wireguard
+      - { to_port: 2152, interface: wg0, proto: udp } # for wg
+
+    firewall_route_ports:
+      - { interface_in: "ogstun", interface_out: "{{ ansible_local.network_interfaces.public_interface }}" }
+      - { interface_in: "ogstun", interface_out: "{{ ansible_local.network_interfaces.private_interface }}" }
+#      - { to_port: 2152, zone: home } #
+
+    iptables_filter_rules:
+      - {port: 38412, action: 'ACCEPT', protocol: 'sctp', interface: 'wg0', chain: 'INPUT' }
+
+    iptables_nat_rules:
+      - {chain: 'POSTROUTING', action: 'MASQUERADE', source_addr: '10.45.0.0/16', out_interface: 'ogstun',  negate_out_interface: true}
+
+
+
+  vars_files:
+    - ../vars/full_open5gs.yml
+    - ../vars/secrets.yml
+
+  roles:
+    - {role: piotmni.initial_setup, tags: initial_setup}
+    - {role: piotmni.network_ubuntu, tags: [network]}
+    - {role: piotmni.firewall_ubuntu, tags: [network, firewall]}
+    - {role: piotmni.hosts, tags: [network, hosts]}
+    - {role: piotmni.resolve, tags: [network, resolve]}
+    - {role: piotmni.wireguard, tags: wireguard}
+    - {role: piotmni.nodejs, tags: [nodejs]}
+    - {role: piotmni.open5gs, tags: [open5gs] }
+    - {role: piotmni.telegraf, tags: telegraf}
+

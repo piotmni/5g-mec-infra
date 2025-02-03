@@ -1,0 +1,16 @@
+---
+- name: Fail playbook if ansible fact network_interfaces does not exists
+  fail:
+    msg: Fact 'network_interfaces' does not exists but it's required by most of playbooks. Please run playbook common.yml and try again.
+  when: ansible_local.network_interfaces is not defined
+
+- include_tasks: install_ufw.yml
+
+- include_tasks: configure_ufw.yml
+
+- name: Ensure ufw is enabled
+  ufw:
+    state: enabled
+
+- name: Ensure handlers are fired now
+  meta: flush_handlers

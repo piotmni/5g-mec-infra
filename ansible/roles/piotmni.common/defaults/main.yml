@@ -1,0 +1,3 @@
+set_hostname: yes
+skip_cloudinit_disable: no
+hostname_domain: "internal.piotmni.pl"

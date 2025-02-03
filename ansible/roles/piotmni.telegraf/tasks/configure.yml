@@ -1,0 +1,57 @@
+---
+
+- name: increase telegraf limit
+  lineinfile:
+    path: '{{ telegraf_service_path }}'
+    insertafter: '^\[Service\]'
+    line: '{{ item }}'
+  loop:
+    - CapabilityBoundingSet=CAP_NET_RAW
+    - AmbientCapabilities=CAP_NET_RAW
+    - LimitNOFILE=8192
+  notify:
+    - reload_daemon
+    - Restart Telegraf
+  tags: configure
+
+- name: Copy configuration file
+  template:
+    src: telegraf.conf.j2
+    dest: "{{ telegraf_agent_config_path }}/telegraf.conf"
+    owner: telegraf
+    group: telegraf
+    mode: 0640
+  notify:
+    - Restart Telegraf
+  tags: configure
+
+- name: Start Telegraf
+  service:
+    name: telegraf
+    state: "{{ telegraf_enabled | ternary('started', 'stopped') }}"
+    enabled: "{{ telegraf_enabled }}"
+  become: yes
+  tags: configure
+
+- name: Add telegraf user to docker group
+  user:
+    name: telegraf
+    groups: docker
+    append: true
+  become: true
+  notify:
+    - Restart Telegraf
+  when: "'docker-ce' in ansible_facts.packages "
+  tags: configure
+
+- name: add telegraf to haproxy group
+  user:
+    name: telegraf
+    groups: haproxy
+    append: true
+  become: true
+  notify:
+    - Restart Telegraf
+  when: "'haproxy' in ansible_facts.packages "
+  tags: configure
+

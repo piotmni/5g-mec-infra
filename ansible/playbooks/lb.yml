@@ -1,0 +1,26 @@
+---
+- hosts: lb
+  become: yes
+  serial: 1
+  vars:
+    network_enable_ip_forwarding: yes
+    firewall_ports:
+      - { to_port: 80, zone: public }
+      - { to_port: 80, zone: home }
+      - { to_port: 443, zone: public }
+      - { to_port: 443, zone: home }
+      - { to_port: 1081, zone: home } # telegraf
+      - { interface: docker0 }
+
+  vars_files:
+    - ../vars/secrets.yml
+    - ../vars/lb.yml
+
+  roles:
+    - {role: piotmni.initial_setup, tags: initial_setup}
+    - {role: piotmni.network_ubuntu, tags: [network]}
+    - {role: piotmni.firewall_ubuntu, tags: [network, firewall]}
+    - {role: piotmni.hosts, tags: [network, hosts]}
+    - {role: piotmni.resolve, tags: [network, resolve]}
+    - {role: piotmni.haproxy, tags: [haproxy]}
+    - {role: piotmni.telegraf, tags: telegraf}

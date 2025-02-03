@@ -1,0 +1,82 @@
+---
+- name: daemon_reload
+  systemd:
+    daemon_reload: yes
+
+- name: restart amf
+  systemd:
+    name: open5gs-amfd
+    state: restarted
+
+- name: restart nrf
+  systemd:
+    name: open5gs-nrfd
+    state: restarted
+
+- name: restart scp
+  systemd:
+    name: open5gs-scpd
+    state: restarted
+  when:
+    - skip_handlers | default("False") == "False"
+- name: restart smf
+  systemd:
+    name: open5gs-smfd
+    state: restarted
+  when:
+    - skip_handlers | default("False") == "False"
+- name: restart ausf
+  systemd:
+    name: open5gs-ausfd
+    state: restarted
+  when:
+    - skip_handlers | default("False") == "False"
+- name: restart udm
+  systemd:
+    name: open5gs-udmd
+    state: restarted
+  when:
+    - skip_handlers | default("False") == "False"
+- name: restart udr
+  systemd:
+    name: open5gs-udrd
+    state: restarted
+  when:
+    - skip_handlers | default("False") == "False"
+- name: restart pcf
+  systemd:
+    name: open5gs-pcfd
+    state: restarted
+  when:
+    - skip_handlers | default("False") == "False"
+- name: restart nssf
+  systemd:
+    name: open5gs-nssfd
+    state: restarted
+  when:
+    - skip_handlers | default("False") == "False"
+- name: restart bsf
+  systemd:
+    name: open5gs-bsfd
+    state: restarted
+  when:
+    - skip_handlers | default("False") == "False"
+- name: restart upf
+  systemd:
+    name: open5gs-upfd
+    state: restarted
+  when:
+    - skip_handlers | default("False") == "False"
+- name: restart webui
+  systemd:
+    name: open5gs-webui
+    state: restarted
+    enabled: yes
+  when:
+    - skip_handlers | default("False") == "False"
+- name: restart systemd-networkd
+  systemd:
+    name: systemd-networkd
+    state: restarted
+  when:
+    - skip_handlers | default("False") == "False"

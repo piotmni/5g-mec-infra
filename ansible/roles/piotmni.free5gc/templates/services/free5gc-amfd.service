@@ -1,0 +1,24 @@
+[Unit]
+Description=Free5gc amf NF
+PartOf=free5gc-core.target
+After=free5gc-core.target
+After=free5gc-nssfd.service
+Requires=free5gc-nssfd.service
+
+
+[Service]
+Type=simple
+
+User=free5gc
+Group=free5gc
+
+# this is dumb but for now let it stay
+ExecStartPost=/bin/sleep 5
+ExecStart=/usr/bin/free5gc-amf -c /etc/free5gc/amf.yaml -l /var/log/free5gc/amf.log
+
+Restart=always
+ExecReload=/bin/kill -HUP $MAINPID
+RestartSec=2
+
+[Install]
+WantedBy=free5gc-core.target

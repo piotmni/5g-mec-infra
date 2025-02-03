@@ -1,0 +1,40 @@
+---
+- name: free5gc-control-plane | configs
+  ansible.builtin.template:
+    src: "configs/{{ item }}cfg.yaml"
+    dest: "/etc/free5gc/{{ item }}.yaml"
+  loop: '{{ control_plane_nfs }}'
+  notify: 'restart {{ item }}'
+
+- name: free5gc-control-plane | uerouting config if control plane
+  ansible.builtin.template:
+    src: "configs/uerouting.yaml"
+    dest: "/etc/free5gc/uerouting.yaml"
+
+- name: free5gc-control-plane | free5gc core target
+  ansible.builtin.template:
+    src: "services/free5gc-core.target"
+    dest: "/lib/systemd/system/free5gc-core.target"
+  notify: daemon_reload
+
+- name: free5gc-control-plane | systemd units
+  ansible.builtin.template:
+    src: "services/free5gc-{{ item }}d.service"
+    dest: "/lib/systemd/system/free5gc-{{ item }}d.service"
+  loop: '{{ control_plane_nfs }}'
+  notify: daemon_reload
+
+- include_tasks: webconsole.yml
+
+- name: free5gc-control-plane | make sure services are started and enabled
+  ansible.builtin.systemd:
+    name: "free5gc-core.target"
+    state: started
+    enabled: yes
+
+- name: free5gc-control-plane | ensure all services are enabled
+  ansible.builtin.systemd:
+    name: "free5gc-{{ item }}d"
+#    state: started
+    enabled: yes
+  loop: '{{ control_plane_nfs }}'

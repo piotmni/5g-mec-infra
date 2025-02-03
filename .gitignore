@@ -1,0 +1,29 @@
+.cache/
+.venv/
+.venv-*/
+.vault_password_file*
+.retry-files
+**/*.pyc
+
+# Local .terraform directories
+**/.terraform/*
+**/.terraform.lock.hcl
+
+# .tfstate files
+*.tfstate
+*.tfstate.*
+
+**/openrc.sh
+
+
+tmp/
+*.log
+/tmp
+/logs/*
+.idea
+.env
+*.pem
+
+
+user_credentials.rc
+**/user_credentials.rc

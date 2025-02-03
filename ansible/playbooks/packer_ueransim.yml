@@ -1,0 +1,38 @@
+---
+- hosts: localhost
+  become: yes
+  vars_files:
+    - ../vars/secrets.yml
+    - ../vars/users.yml
+#    - ../vars/nomad.yml
+  vars:
+    disable_for_packer: "true"
+    inventory_hostname: "ueransim-gnb"
+    gnb_node: True
+    ue_node: True
+
+    ue_config:
+      ueransim-gnb:
+        supi: 'imsi-999700000000003'
+        mcc: '999'
+        mnc: '70'
+        key: '465B5CE8B199B49FAA5F0A2EE238A6BC'
+        op: 'E8ED289DEBA952E4283B54E88E6183CA'
+        gnb_address: 127.0.0.1
+        apn: 'internet-bhs'
+        slice:
+          sst: 1
+
+  roles:
+    - {role: piotmni.common, tags: common}
+    - {role: piotmni.initial_setup, tags: initial_setup}
+    - {role: geerlingguy.docker, tags: docker}
+    - {role: piotmni.ueransim, tags: ueransim}
+  tasks:
+    - name: install wireguard
+      apt:
+        name: wireguard
+        state: present
+        update_cache: yes
+      tags:
+        - wireguard

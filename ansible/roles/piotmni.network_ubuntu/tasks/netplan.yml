@@ -1,0 +1,26 @@
+---
+- name: Get current netplan config and save to netplan_running_config
+  slurp:
+    src: "{{ netplan_config_path }}"
+  register: netplan_running_config
+
+- name: Store netplan config in fact
+  set_fact:
+    running_netplan_config: '{{ netplan_running_config["content"] | b64decode | from_yaml }}'
+
+- name: Construct private interface address in netplan format
+  set_fact:
+    _private_addr: '{"network": {"ethernets": {"{{ ansible_local.network_interfaces.private_interface }}": {"addresses": ["{{internal}}/{{network_mask}}"] }}}}'
+
+- name: Combine running netplan config with private interface address
+  set_fact:
+    new_netplan_config: "{{ running_netplan_config | combine(_private_addr, recursive=True) }}"
+
+- name: Update netplan config
+  template:
+    src: etc/netplan/50-cloud-init.yaml
+    dest: "{{ netplan_config_path}}"
+    backup: yes
+  notify: netplan apply
+  when: new_netplan_config is defined
+

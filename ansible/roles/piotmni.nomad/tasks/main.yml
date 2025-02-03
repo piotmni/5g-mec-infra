@@ -1,0 +1,19 @@
+---
+- name: check if nomad is already installed
+  stat:
+    path: /usr/bin/nomad
+  register: stat_nomad
+
+- name: get nomad version
+  shell: '/usr/bin/nomad --version 2>&1'
+  register: nomad_running_version
+  changed_when: "'NEVER' in nomad_running_version.stdout"  # never mark this shell as changed
+  when: stat_nomad.stat.exists
+
+- include_tasks: install.yml
+  when: not stat_nomad.stat.exists or nomad_version not in nomad_running_version.stdout
+
+- include_tasks: configure.yml
+  tags: configure
+
+- meta: flush_handlers

@@ -1,0 +1,33 @@
+---
+- name: Increase fs
+  sysctl:
+    name: fs.file-max
+    value: '65536'
+  tags: configure
+
+- name: Copy prometheus service
+  template:
+    src: 'prometheus.service'
+    dest: '/etc/systemd/system/'
+  notify:
+    - daemon_reload
+    - prometheus_restart
+  tags: configure
+
+- name: Copy prometheus config
+  template:
+    src: prometheus.yml
+    dest: /etc/prometheus/
+  notify: prometheus_reload
+  tags: configure
+
+- name: Check prometheus config and rules
+  shell: /usr/bin/promtool check config /etc/prometheus/prometheus.yml
+  changed_when: false
+  tags: configure
+
+- name: Ensure prometheus is enabled
+  systemd:
+    name: prometheus
+    enabled: yes
+  tags: configure

@@ -1,0 +1,8 @@
+---
+packages:
+  - vim
+  - git
+  - htop
+  - curl
+  - wget
+  - telnet

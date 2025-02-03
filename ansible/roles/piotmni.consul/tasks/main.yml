@@ -1,0 +1,14 @@
+---
+
+- include_tasks: install.yml
+
+- include_tasks: configure.yml
+  tags: configure
+
+- name: enable service
+  systemd:
+    name: consul.service
+    daemon_reload: yes
+    enabled: yes
+
+- meta: flush_handlers

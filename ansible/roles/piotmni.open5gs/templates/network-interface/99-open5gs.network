@@ -1,0 +1,6 @@
+[Match]
+Name=ogstun
+[Network]
+{% for subnet in upf_subnets[inventory_hostname] %}
+Address={{ subnet.addr }}
+{% endfor %}

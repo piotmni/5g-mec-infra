@@ -1,0 +1,11 @@
+---
+- name: Copy init.js script
+  template:
+    src: scripts/init.js
+    dest: /tmp/init.js
+  tags: configure
+
+# run script using mongo on db oppen5gs
+- name: Run init.js script
+  command: mongo open5gs /tmp/init.js
+  tags: configure

@@ -1,0 +1,12 @@
+# /etc/grafana/provisioning/dashboards/default.yml
+# /var/lib/grafana/dashboards/open5gs.json
+# /var/lib/grafana/dashboards/hosts.json
+apiVersion: 1
+
+providers:
+  - name: Default # A uniquely identifiable name for the provider
+    folder: Services # The folder where to place the dashboards
+    type: file
+    options:
+      path:
+        /var/lib/grafana/dashboards

@@ -1,0 +1,20 @@
+---
+
+- name: check if prometheus is already installed
+  stat:
+    path: /usr/bin/prometheus
+  register: stat_prometheus
+
+- name: get prometheus version
+  shell: '/usr/bin/prometheus --version 2>&1 | grep prometheus'
+  register: prometheus_version
+  changed_when: "'NEVER' in prometheus_version.stdout"
+  when: stat_prometheus.stat.exists
+
+- include_tasks: install.yml
+  when: not stat_prometheus.stat.exists or prom_version not in prometheus_version.stdout
+
+- include_tasks: configure.yml
+  tags: configure
+
+- meta: flush_handlers

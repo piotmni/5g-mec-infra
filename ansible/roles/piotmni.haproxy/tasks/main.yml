@@ -1,0 +1,13 @@
+---
+- import_tasks: install.yml
+
+- import_tasks: certificates.yml
+
+- import_tasks: configuration.yml
+  tags: configure
+
+- name: Make haproxy service started and enabled
+  service:
+    name: haproxy
+    state: 'started'
+    enabled: true

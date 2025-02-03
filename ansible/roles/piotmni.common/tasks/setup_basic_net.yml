@@ -1,0 +1,23 @@
+---
+- name: Disable cloud-init networking
+  copy:
+    src: 99-disable-network-config.cfg
+    dest: /etc/cloud/cloud.cfg.d/
+  when: not skip_cloudinit_disable
+
+- name: Ensure dir for custom facts exists
+  file:
+    path: /etc/ansible/facts.d
+    owner: root
+    group: root
+    state: directory
+
+- name: Ensure custom fact for network interfaces is present
+  template:
+    src: network_interfaces.fact
+    dest: /etc/ansible/facts.d/network_interfaces.fact
+    mode: 0755
+
+- name: Update facts - re-read
+  ansible.builtin.setup:
+    filter: ansible_local

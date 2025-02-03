@@ -1,0 +1,5 @@
+# generate hosts
+network_generate_hosts_enabled: yes
+network_hosts_shortcuts: false
+hosts_internal_domain: 'internal.piotmni.pl'
+

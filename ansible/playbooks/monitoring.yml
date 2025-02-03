@@ -1,0 +1,23 @@
+---
+- hosts:
+    - monitoring
+  become: yes
+  serial: 1
+  vars:
+    network_enable_ip_forwarding: yes
+    firewall_ports:
+      - { to_port: 1081, zone: home } # telegraf
+      - { to_port: 9090, zone: home } # web prom
+      - { to_port: 3000, zone: home } # grafana
+
+  vars_files:
+    - ../vars/secrets.yml
+  roles:
+    - {role: piotmni.initial_setup, tags: initial_setup}
+    - {role: piotmni.network_ubuntu, tags: [network]}
+    - {role: piotmni.firewall_ubuntu, tags: [network, firewall]}
+    - {role: piotmni.hosts, tags: [network, hosts]}
+    - {role: piotmni.resolve, tags: [network, resolve]}
+    - {role: piotmni.telegraf, tags: telegraf}
+    - {role: piotmni.prometheus, tags: [prom]}
+    - {role: piotmni.grafana, tags: [grafana]}

@@ -1,0 +1,17 @@
+[Unit]
+Description=UERANSIM UE daemon
+After=network-online.target
+
+[Service]
+Type=simple
+
+User=ueransim
+Group=ueransim
+
+Restart=always
+ExecStart=/opt/ueransim/build/nr-gnb -c /etc/ueransim/gnb.yaml
+RestartSec=2
+ExecReload=/bin/kill -HUP $MAINPID
+
+[Install]
+WantedBy=multi-user.target

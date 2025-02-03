@@ -1,0 +1,7 @@
+#!/bin/bash
+
+interfaces_temp=($(ip link | awk -F: '$0 !~ "docker|vlan|veth|lo|^[^0-9]"{print $2}'))
+interfaces=($(sort <<<"${interfaces_temp[*]}"))
+
+# private_link vs private_interface was done for genreate interfeace for vlan not used in this project
+echo "{\"public_interface\": \"${interfaces[0]}\", \"private_link\": \"${interfaces[1]}\", \"private_interface\": \"${interfaces[1]}\"}"

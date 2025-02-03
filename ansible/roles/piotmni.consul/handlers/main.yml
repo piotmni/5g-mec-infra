@@ -1,0 +1,6 @@
+- name: restart_consul
+  systemd:
+    name: consul
+    state: restarted
+  when:
+    - skip_handlers | default("False") == "False"

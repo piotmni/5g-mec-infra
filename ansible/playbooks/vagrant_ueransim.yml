@@ -1,0 +1,86 @@
+- hosts: all
+  become: yes
+  vars:
+    ue_node: True
+    ueransim_node_type: "ue"
+
+    # vers set in vagrant
+    # ue_config for all server
+    # ue_config:
+    #   default:
+    #     upf_subnet: 10.45.0.0/16
+    #     supi: 'imsi-999700000000001'
+    #     mcc: '999'
+    #     mnc: '70'
+    #     key: '465B5CE8B199B49FAA5F0A2EE238A6BC'
+    #     op: 'E8ED289DEBA952E4283B54E88E6183CA'
+    #     gnb_address: 127.0.0.1
+    #
+    #     apn: 'internet'
+    #     slice:
+    #       sst: 1
+    # dns_address: based on host_var
+
+
+  roles:
+    - { role: piotmni.initial_setup }
+    - { role: piotmni.ueransim }
+
+  tasks:
+#    - name: Ensure ip_conntrack module is enabled
+#      modprobe:
+#        name: ip_conntrack
+#
+#    - name: set sysctl flags
+#      ansible.builtin.sysctl:
+#        name: "{{ item.name }}"
+#        value: "{{ item.value }}"
+#        state: present
+#        reload: yes
+#      loop:
+#        - { name: net.ipv4.ip_local_port_range, value: "15000 61000" }
+#        - { name: net.ipv4.tcp_fin_timeout, value: 30 }
+##        - { name: net.netfilter.nf_conntrack_max, value: 999999 }
+##        - { name: net.ipv4.netfilter.ip_conntrack_max, value: 999999 }
+##        - { name: net.nf_conntrack_max, value: 999999 }
+    - name: restart nr-ue systemd
+      ansible.builtin.service:
+        name: nr-ue
+        state: restarted
+        enabled: yes
+
+    - name: "wait for uesimtun0"
+      ansible.builtin.wait_for:
+        path: /sys/class/net/uesimtun0
+        state: present
+        timeout: 60
+
+    - name: "add routes for upf subnet"
+      ansible.builtin.shell: |
+        ip route add {{ ue_config[inventory_hostname]['upf_subnet'] }} dev uesimtun0
+
+    - name: "remove default gateway"
+      ansible.builtin.shell: |
+        ip route del default via 10.0.2.2 || true
+        ip route del default via 192.168.1.1 || true
+        ip route del default via 192.168.0.1 || true
+
+    - name: disable systemd resoved
+      ansible.builtin.service:
+        name: systemd-resolved
+        state: stopped
+        enabled: no
+
+    - name: insert nameserver dns to resolve conf
+      ansible.builtin.shell: |
+        echo "nameserver {{ dns_address }}" > /etc/resolv.conf
+
+    - name: "add default gateway"
+      ansible.builtin.shell: |
+        ip route add default via {{ ue_config[inventory_hostname]['upf_subnet'] | ansible.utils.ipaddr('net') | ansible.utils.ipaddr('1') | ansible.utils.ipaddr('address') }}
+
+
+
+# install wrk for testing
+# install lua
+

@@ -1,0 +1,65 @@
+---
+- name: Add nomad group
+  group:
+    name: nomad
+    system: yes
+
+- name: Add nomad user
+  user:
+    name: nomad
+    group: nomad
+    home: '/etc/nomad.d'
+    shell: '/bin/false'
+
+- name: Create nomad dir
+  file:
+    path: '{{nomad_config_dir}}'
+    state: directory
+
+- name: Ensure nomad data dir exists
+  file:
+    path: '{{ nomad_data_dir }}'
+    mode: '0770'
+    state: directory
+    owner: nomad
+    group: nomad
+
+- name: Create volumen dirs
+  file:
+    path: '{{ item.path }}'
+    state: directory
+    recurse: yes
+    mode: 0750
+  loop: '{{nomad_volumes}}'
+  when: nomad_volumes is defined
+
+- name: Copy nomad config
+  template:
+    src: 'nomad-{{ nomad_host_role }}.hcl'
+    dest: '{{ nomad_config_dir }}/nomad.hcl'
+    owner: root
+    group: root
+    mode: 0664
+  notify: restart_nomad
+  when: not skip_nomad_config is defined
+  tags: configure
+
+- name: Copy nomad service
+  template:
+    src: nomad.service
+    dest: '/etc/systemd/system/nomad.service'
+  notify:
+    - enable_nomad
+    - restart_nomad
+  tags: configure
+
+- name: Update inotify kernel flags
+  sysctl:
+    name: "{{ item.name }}"
+    value: "{{ item.value }}"
+    state: present
+  loop:
+    - {name: "fs.inotify.max_queued_events", value: 1048576 }
+    - {name: "fs.inotify.max_user_instances", value: 1048576 }
+    - {name: "fs.inotify.max_user_watches", value: 1048576 }
+  when: update_inotify_sysctl

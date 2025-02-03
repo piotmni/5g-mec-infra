@@ -1,0 +1,11 @@
+# /etc/grafana/provisioning/dashboards/prom.yml
+
+# # config file version
+apiVersion: 1
+
+
+datasources:
+- name: Prometheus
+  type: prometheus
+  access: proxy
+  url: http://localhost:9090

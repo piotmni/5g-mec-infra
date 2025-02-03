@@ -1,0 +1,10 @@
+
+
+common_users:
+  - name: piotr
+    authorized_key: "{{ lookup('file', '../files/ssh_keys/piotr.pub')}}"
+    groups: [sudo, wheel]
+    password: '{{ password_piotr }}'
+    update_password: on_create
+    hosts_groups: 'all'
+    basic_auth: yes

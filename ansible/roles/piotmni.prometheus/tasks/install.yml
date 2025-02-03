@@ -1,0 +1,65 @@
+---
+- name: Create prometheus group
+  group:
+    name: prometheus
+
+- name: Create prometheus user
+  user:
+    name: prometheus
+    group: prometheus
+
+- name: Create directories
+  file:
+    path: '{{ item }}'
+    state: directory
+    owner: prometheus
+    group: prometheus
+    recurse: yes
+  loop:
+    - '{{ prometheus_config_dir }}'
+    - '{{ prometheus_data_dir }}'
+    - '{{ prometheus_download_path }}'
+    - '{{ prometheus_download_path }}/prometheus-{{ prom_version }}'
+
+- name: Check if prometheus tar.gz exists
+  stat:
+    path: '{{ prometheus_download_path }}/prometheus-{{ prom_version }}.tar.gz'
+  register: stat_result
+
+- name: Download prometheus tar.gz
+  get_url:
+    url: '{{ prometheus_tar_url }}'
+    dest: '{{ prometheus_download_path }}/prometheus-{{ prom_version }}.tar.gz'
+  when: not stat_result.stat.exists
+
+- name: Check if tar unpacked
+  stat:
+    path: '{{ prometheus_download_path }}/prometheus-{{ prom_version }}/prometheus-{{ prom_version }}.linux-amd64/LICENSE'
+  register: stat_result_2
+
+- name: Unpack prometheus
+  unarchive:
+    remote_src: yes
+    src: '{{ prometheus_download_path }}/prometheus-{{ prom_version }}.tar.gz'
+    dest: '{{ prometheus_download_path }}/prometheus-{{ prom_version }}'
+  when: not stat_result_2.stat.exists
+
+- name: Move prometheus binaries
+  copy:
+    remote_src: yes
+    src: '{{ prometheus_download_path }}/prometheus-{{ prom_version }}/prometheus-{{ prom_version }}.linux-amd64/{{ item }}'
+    dest: '/usr/bin/{{ item }}'
+    mode: 0555
+  loop:
+    - prometheus
+    - promtool
+  notify: prometheus_restart
+
+- name: Move prometheus web files
+  copy:
+    remote_src: yes
+    src: '{{ prometheus_download_path }}/prometheus-{{ prom_version }}/prometheus-{{ prom_version }}.linux-amd64/{{ item }}'
+    dest: '/etc/prometheus/'
+  loop:
+    - consoles
+    - console_libraries

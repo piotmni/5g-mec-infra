@@ -1,0 +1,32 @@
+global:
+  scrape_interval: 10s
+  evaluation_interval: 10s
+  # scrape_timeout is set to the global default (10s).
+
+
+# A scrape configuration containing exactly one endpoint to scrape:
+# Here it's Prometheus itself.
+scrape_configs:
+  # The job name is added as a label `job=<job_name>` to any timeseries scraped from this config.
+  - job_name: 'localhost'
+    static_configs:
+    - targets: ['localhost:9090']
+
+  {% for group in (groups | default([])) | difference(['all', 'ungrouped']) %}
+
+  ####### {{group}}
+
+  - job_name: {{group}}
+    basic_auth:
+      username: prometheus
+      password: '{{ prometheus_exporter_password_plain }}'
+    static_configs:
+      - targets:
+
+      {% for host in groups[group] %}
+      {%- set ip_addr = host + "{{ domain }}" %}
+      - '{{ ip_addr }}:{{ hostvars[host]["telegraf_port"] | default(1081) }}'
+      {% endfor %}
+
+  {% endfor %}
+

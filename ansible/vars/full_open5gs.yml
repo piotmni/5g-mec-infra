@@ -1,0 +1,9 @@
+---
+control_plane_node: True
+user_plane_node: True
+
+# adress configs
+#amf_ngap_address: '{{ ansible_host }}'
+amf_ngap_address: '{{ wireguard_address }}'
+upf_address_gtpu: '{{ wireguard_address }}'
+

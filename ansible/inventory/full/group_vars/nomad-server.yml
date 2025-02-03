@@ -1,0 +1,7 @@
+---
+nomad_host_role: server
+consul_host_role: server
+
+consul_domain: "piotmni.pl"
+
+

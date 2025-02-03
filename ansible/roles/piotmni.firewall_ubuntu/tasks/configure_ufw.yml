@@ -1,0 +1,54 @@
+---
+
+# --- DEFAULT POLICIES --- #
+
+- name: Ensure default incoming policy is set to {{ ufw_default_incoming_policy }}
+  ufw:
+    policy: "{{ ufw_default_incoming_policy }}"
+    direction: incoming
+  notify: reload ufw
+
+- name: Ensure default incoming policy is set to {{ ufw_default_outgoing_policy }}
+  ufw:
+    policy: "{{ ufw_default_outgoing_policy }}"
+    direction: outgoing
+  notify: reload ufw
+
+# ---- RULES ---- #
+
+- name: Allow ssh traffic on public and private interfaces
+  ufw:
+    rule: allow
+    interface: "{{ item }}"
+    to_port: "22"
+    protocol: tcp
+    direction: in
+  loop:
+    - "{{ ansible_local.network_interfaces.public_interface }}"
+    - "{{ ansible_local.network_interfaces.private_interface }}"
+
+- name: Add firewall rules
+  ufw:
+    rule: "{{ item.rule | default('allow') }}"
+    interface: '{% if item.interface is defined %}{{ item.interface }}{% else %}{{ ansible_local.network_interfaces.public_interface if item.zone == "public" else ansible_local.network_interfaces.private_interface }}{% endif %}'
+    direction: "{{ item.direction | default('in') }}"
+    from_ip: "{{ item.from_ip | default('any') }}"
+    to_ip: "{{ item.to_ip | default('any') }}"
+    from_port: "{{ item.from_port | default('') }}"
+    to_port: "{{ item.to_port | default('') }}"
+    protocol: "{{ item.proto | default('tcp') }}"
+    route: "{{ item.route | default(omit) }}"
+    log: "{{ item.log | default(false) }}"
+    comment: "{{ item.comment | default(omit) }}"
+  loop: "{{ firewall_ports }}"
+
+- name: Setup firewall route ports - required for routing between interfaces
+  ufw:
+    rule: "{{ item.rule | default('allow') }}"
+    interface_in: "{{ item.interface_in }}"
+    interface_out: "{{ item.interface_out }}"
+    route: "true"
+  loop: "{{ firewall_route_ports }}"
+  when: firewall_route_ports is defined
+
+- import_tasks: iptables_rules_for_ufw.yml

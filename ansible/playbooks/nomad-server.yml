@@ -1,0 +1,38 @@
+---
+- hosts:
+    - nomad-server
+  become: yes
+  serial: 3
+  vars_files:
+    - ../vars/secrets.yml
+#    - ../vars/nomad.yml
+  vars:
+    network_enable_ip_forwarding: yes
+    firewall_ports:
+      - { to_port: 4648, zone: home, proto: 'udp' }
+#      - { to_port: 53,   zone: home, proto: 'udp' } # dns for consul connect
+      - {to_port: 4646, zone: home} # api and web ui
+      - {to_port: 4647, zone: home}
+      - {to_port: 4648, zone: home}
+
+      - { to_port: 53, zone: home } # dns for consul connect
+      - { to_port: 53, zone: home, proto: 'udp' } # dns for consul connect
+      - { to_port: 8300, zone: home } # consul LAN Serf
+      - { to_port: 8301, zone: home } # consul LAN Serf
+      - { to_port: 8301, zone: home, proto: 'udp' } # consul LAN Serf
+      - { to_port: 8302, zone: home } # consul WAN Serf
+      - { to_port: 8302, zone: home, proto: 'udp' } # consul WAN Serf
+      - { to_port: 8500, zone: home } # consul http port
+
+  roles:
+    - {role: piotmni.initial_setup, tags: initial_setup}
+
+    - {role: piotmni.network_ubuntu, tags: [network]}
+    - {role: piotmni.firewall_ubuntu, tags: [network, firewall]}
+    - {role: piotmni.hosts, tags: [network, hosts]}
+    - {role: piotmni.resolve, tags: [network, resolve]}
+
+#    - {role: geerlingguy.docker, tags: docker}
+    - {role: piotmni.consul, tags: consul}
+    - {role: piotmni.nomad, tags: nomad}
+    - {role: piotmni.telegraf, tags: telegraf}

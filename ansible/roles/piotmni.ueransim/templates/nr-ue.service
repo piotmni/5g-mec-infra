@@ -1,0 +1,17 @@
+[Unit]
+Description=UERANSIM UE daemon
+After=network-online.target
+
+[Service]
+Type=simple
+
+User=root
+Group=root
+
+Restart=always
+ExecStart=/opt/ueransim/build/nr-ue -c /etc/ueransim/ue.yaml
+RestartSec=2
+ExecReload=/bin/kill -HUP $MAINPID
+
+[Install]
+WantedBy=multi-user.target

@@ -1,0 +1,14 @@
+---
+wireguard_remote_directory: "/etc/wireguard"
+wireguard_conf_owner: root
+wireguard_conf_group: "root"
+wireguard_conf_mode: 0600
+
+wireguard_ubuntu_update_cache: "true"
+wireguard_ubuntu_cache_valid_time: "3600"
+wireguard_interface: "wg0"
+wireguard_port: "51820"
+wireguard_mtu: 1420
+wg_postup_router_ubuntu: "iptables -A FORWARD -i %i -j ACCEPT; iptables -t nat -A POSTROUTING -o {{ ansible_local.network_interfaces.private_interface }} -j MASQUERADE"
+wg_postdown_router_ubuntu: "iptables -D FORWARD -i %i -j ACCEPT; iptables -t nat -D POSTROUTING -o {{ ansible_local.network_interfaces.private_interface }} -j MASQUERADE"
+

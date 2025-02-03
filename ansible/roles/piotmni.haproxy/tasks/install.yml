@@ -1,0 +1,19 @@
+# tasks file for haproxy
+---
+- name: Install haproxy dependencies
+  apt:
+    name: "{{ haproxy_dependencies_pre }}"
+    state: "latest"
+    update_cache: true
+    cache_valid_time: "{{ apt_update_cache_valid_time | default(3600) }}"
+
+- name: Add ppa repository for haproxy
+  apt_repository:
+    repo: "{{ haproxy_ppa }}"
+    update_cache: true
+  when: haproxy_use_ppa | bool
+
+- name: Install haproxy
+  apt:
+    name: "haproxy"
+    state: "latest"

@@ -1,0 +1,49 @@
+---
+- name: Create directory for code
+  ansible.builtin.file:
+    path: /opt/open5gs-webui/
+    state: directory
+
+- name: Check if already installed
+  stat:
+    path: /usr/lib/node_modules/open5gs
+  register: node_module_open5gs
+
+- block:
+    - name: Download code
+      ansible.builtin.unarchive:
+        src: https://github.com/open5gs/open5gs/archive/v2.5.6.tar.gz
+        dest: /opt/open5gs-webui/
+        remote_src: yes
+
+    - name: Build code
+      ansible.builtin.command:
+        chdir: /opt/open5gs-webui/open5gs-2.5.6/webui/
+        cmd: "{{ item }}"
+      loop:
+        - "npm clean-install"
+        - "npm run build"
+
+    - name: Copy files
+      ansible.builtin.copy:
+        remote_src: yes
+        src: /opt/open5gs-webui/open5gs-2.5.6/webui/
+        dest: /usr/lib/node_modules/open5gs
+        owner: open5gs
+        group: open5gs
+  when: node_module_open5gs.stat.exists == False
+
+- name: Copy systemd unit
+  ansible.builtin.template:
+    dest: "/lib/systemd/system/open5gs-webui.service"
+    src: "services/open5gs-webui.service"
+  notify:
+    - daemon_reload
+    - restart webui
+
+- name: Make sure service is stared and enabled
+  ansible.builtin.systemd:
+    name: open5gs-webui.service
+    state: started
+    enabled: yes
+

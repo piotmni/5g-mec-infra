@@ -1,0 +1,17 @@
+---
+- hosts: localhost
+  become: yes
+  vars_files:
+    - ../vars/secrets.yml
+    - ../vars/users.yml
+  vars:
+    disable_for_packer: "true"
+    skip_handlers: "true"
+    inventory_hostname: "open5gs-core-de"
+    dc: "{{ ovh_region }}"
+  roles:
+    - {role: piotmni.common, tags: common}
+    - {role: piotmni.initial_setup, tags: initial_setup}
+    - {role: piotmni.nodejs, tags: [nodejs]}
+    - {role: piotmni.open5gs, tags: [open5gs] }
+    - {role: piotmni.telegraf, tags: telegraf}

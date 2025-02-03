@@ -1,0 +1,12 @@
+---
+# /usr/bin/open5gs-dbctl add 999700000000001 465B5CE8B199B49FAA5F0A2EE238A6BC E8ED289DEBA952E4283B54E88E6183CA
+# check var number_of_default_subscribers and add using command change onlny 999700000000001 with 99970000000000{index}
+
+#    echo "   add_ue_with_apn {imsi key opc apn}: adds a user to the database with a specific apn,"
+
+
+- name: Add subscribers
+  ansible.builtin.shell:
+    cmd: "/usr/bin/open5gs-dbctl add_ue_with_apn {{ item.imsi }} 465B5CE8B199B49FAA5F0A2EE238A6BC E8ED289DEBA952E4283B54E88E6183CA {{ item.dn }}"
+  loop: "{{ subscribers }}"
+  tags: configure

@@ -1,0 +1,21 @@
+---
+- hosts: localhost
+  become: yes
+  vars_files:
+    - ../vars/secrets.yml
+    - ../vars/users.yml
+#    - ../vars/nomad.yml
+  vars:
+    skip_handlers: "true"
+    nomad_host_role: client
+    consul_host_role: client
+    consul_domain: "piotmni.pl"
+    inventory_hostname: "nomad-client-de-1"
+    dc: "{{ ovh_region }}"
+  roles:
+    - {role: piotmni.common, tags: common}
+    - {role: piotmni.initial_setup, tags: initial_setup}
+    - {role: geerlingguy.docker, tags: docker}
+    - {role: piotmni.consul, tags: consul}
+    - {role: piotmni.nomad, tags: nomad}
+    - {role: piotmni.telegraf, tags: telegraf}

@@ -1,0 +1,11 @@
+---
+
+prometheus_tar_url: 'https://github.com/prometheus/prometheus/releases/download/v{{ prom_version }}/prometheus-{{ prom_version }}.linux-amd64.tar.gz'
+prometheus_config_dir: /etc/prometheus
+prometheus_data_dir: /var/lib/prometheus
+prometheus_download_path: /opt/prom/prometheus_download
+domain: "internal.piotmni.pl"
+prom_version: 2.47.1
+#ppg_exporters_ports_map:
+#  telegraf: 1081
+#  consul: 8500

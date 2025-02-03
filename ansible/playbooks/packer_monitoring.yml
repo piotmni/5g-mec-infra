@@ -1,0 +1,24 @@
+---
+- hosts: localhost
+  become: yes
+  serial: 1
+  vars:
+    skip_handlers: "true"
+    inventory_hostname: "monitoring-de-1"
+    dc: "de1"
+    internal: 10.30.1.12
+    network_enable_ip_forwarding: yes
+    firewall_ports:
+      - { to_port: 1081, zone: home } # telegraf
+      - { to_port: 9090, zone: home } # web prom
+      - { to_port: 3000, zone: home } # grafana
+
+  vars_files:
+    - ../vars/users.yml
+    - ../vars/secrets.yml
+  roles:
+    - {role: piotmni.common, tags: common}
+    - {role: piotmni.initial_setup, tags: initial_setup}
+    - {role: piotmni.telegraf, tags: telegraf}
+    - {role: piotmni.prometheus, tags: [prom]}
+    - {role: piotmni.grafana, tags: [grafana]}

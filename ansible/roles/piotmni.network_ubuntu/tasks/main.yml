@@ -1,0 +1,20 @@
+---
+- name: Fail playbook if ansible fact network_interfaces does not exists
+  fail:
+    msg: Fact 'network_interfaces' does not exists but it's required by most of playbooks. Please run playbook common.yml and try again.
+  when: ansible_local.network_interfaces is not defined
+
+- name: "Ensure ip forwarding is {{ network_enable_ip_forwarding | ternary('enabled', 'disabled') }}"
+  sysctl:
+    name: net.ipv4.ip_forward
+    value: "{{ network_enable_ip_forwarding | ternary(1, 0) }}"
+    state: present
+
+- name: netplan
+  include_tasks: netplan.yml
+
+- name: conntrack
+  include_tasks: conntrack.yml
+
+- meta: flush_handlers
+

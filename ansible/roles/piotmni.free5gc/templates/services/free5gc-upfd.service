@@ -1,0 +1,19 @@
+[Unit]
+Description=Free5gc upf NF
+After=network-online.target
+
+[Service]
+Type=simple
+
+User=root
+Group=root
+
+Restart=always
+
+ExecStart=/usr/bin/free5gc-upf -c /etc/free5gc/upf.yaml -l /var/log/free5gc/upf.log
+RestartSec=2
+ExecReload=/bin/kill -HUP $MAINPID
+
+[Install]
+WantedBy=multi-user.target
+

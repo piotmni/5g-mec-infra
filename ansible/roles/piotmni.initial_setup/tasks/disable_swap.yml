@@ -1,0 +1,17 @@
+---
+
+- name: Ensure swap is disabled for current session
+  command: swapoff -a
+
+- name: Ensure swap is disabled permamently
+  replace:
+    path: /etc/fstab
+    regexp: '^(\s*)([^#\n]+\s+)(\w+\s+)swap(\s+.*)$'
+    replace: '#\1\2\3swap\4'
+    backup: yes
+
+- name: Ensure vm.swappiness is set to 0
+  sysctl:
+    name: vm.swappiness
+    value: '0'
+    state: present

@@ -1,0 +1,4 @@
+network_enable_ip_forwarding: false
+# default network network_mask for private interface
+network_mask: '23'
+netplan_config_path: /etc/netplan/50-cloud-init.yaml

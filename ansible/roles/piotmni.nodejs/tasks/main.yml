@@ -1,0 +1,47 @@
+---
+- name: add keyring
+  ansible.builtin.apt_key:
+    url: https://deb.nodesource.com/gpgkey/nodesource.gpg.key
+    state: present
+    keyring: /usr/share/keyrings/nodesource.gpg
+
+- name: add repositories for Node.js.
+  ansible.builtin.apt_repository:
+    repo: "{{ item }}"
+    state: present
+  with_items:
+    - "deb [signed-by=/usr/share/keyrings/nodesource.gpg] https://deb.nodesource.com/node_18.x {{ ansible_distribution_release }} main"
+    - "deb-src [signed-by=/usr/share/keyrings/nodesource.gpg] https://deb.nodesource.com/node_18.x {{ ansible_distribution_release }} main"
+  register: node_repo
+
+- name: Update apt cache if repo was added.
+  ansible.builtin.apt:
+    update_cache: yes
+  when: node_repo is changed
+
+- name: Install nodejs
+  ansible.builtin.apt:
+    name: nodejs
+    state: present
+
+- name: Install yarn
+  ansible.builtin.apt:
+    name: yarn
+    state: present
+
+- name: Ensure apt-transport-https is installed
+  ansible.builtin.apt:
+    name: apt-transport-https
+
+- name: Add Yarn ansible.builtin.apt key
+  ansible.builtin.apt_key:
+    url: https://dl.yarnpkg.com/debian/pubkey.gpg
+
+- name: Add Yarn repository
+  ansible.builtin.apt_repository:
+    repo: "deb https://dl.yarnpkg.com/debian/ stable main"
+    filename: yarn
+
+- name: Install Yarn
+  ansible.builtin.apt:
+    name: yarn

@@ -1,0 +1,5 @@
+OS_AUTH_URL    = "https://auth.cloud.ovh.net/v3"
+OS_PASSWORD    = ""
+OS_TENANT_ID   = ""
+OS_TENANT_NAME = ""
+OS_USERNAME    = ""

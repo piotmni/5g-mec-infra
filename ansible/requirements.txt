@@ -1,0 +1,7 @@
+ansible==8.4.0
+Jinja2==3.1.2
+python-openstackclient==6.3.0
+paramiko==3.3.1
+python-gitlab==3.15.0
+ovh==1.1.0
+dnspython

@@ -1,0 +1,10 @@
+127.0.0.1 localhost
+127.0.0.1 {{ inventory_hostname }} {{ inventory_hostname }}.{{ hosts_internal_domain }}
+{% for host in groups['all'] %}
+{% if inventory_hostname != host %}
+{% if hostvars[host]["internal"] is defined %}
+{{ hostvars[host]["internal"] }} {{ host }}.{{ hosts_internal_domain }} {% if network_hosts_shortcuts %} {{ host }} {% endif %}
+
+{% endif %}
+{% endif %}
+{% endfor %}

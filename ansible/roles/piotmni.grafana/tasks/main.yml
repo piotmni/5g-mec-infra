@@ -1,0 +1,13 @@
+---
+- include_tasks: install.yml
+
+- include_tasks: configure.yml
+  tags: configure
+
+- name: Ensure grafana.service is stared and enabled
+  systemd:
+    name: grafana-server
+    state: started
+    enabled: true
+    daemon_reload: true
+

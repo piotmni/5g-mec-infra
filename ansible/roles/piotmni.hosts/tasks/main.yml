@@ -1,0 +1,9 @@
+---
+- name: Generate /etc/hosts
+  template:
+    src: hosts.j2
+    dest: /etc/hosts
+    backup: yes
+  when: network_generate_hosts_enabled
+
+- meta: flush_handlers

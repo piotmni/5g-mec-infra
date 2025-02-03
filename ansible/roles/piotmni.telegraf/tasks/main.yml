@@ -1,0 +1,14 @@
+---
+- name: gather the package facts
+  package_facts:
+    manager: auto
+  tags: configure
+
+- name: install
+  include_tasks: install.yml
+
+- name: configure
+  include_tasks: configure.yml
+  tags: configure
+
+- meta: flush_handlers

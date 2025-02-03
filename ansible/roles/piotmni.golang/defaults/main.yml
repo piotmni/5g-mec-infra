@@ -1,0 +1,13 @@
+---
+# defaults file for free5gc
+
+
+golang_version: 1.19.4
+golang_install_dir: /usr/local
+golang_version_string: "go version go{{ golang_version }} linux/amd64"
+
+
+golang_tarball: "go{{ golang_version }}.linux-amd64.tar.gz"
+golang_download_location: "https://go.dev/dl/{{ golang_tarball }}"
+
+

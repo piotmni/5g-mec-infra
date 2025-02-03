@@ -1,0 +1,25 @@
+---
+
+- name: Install APT HTTPS transport
+  apt:
+    name: "apt-transport-https"
+    state: present
+
+- name: Download Telegraf apt key
+  apt_key:
+    url: "https://repos.influxdata.com/influxdata-archive_compat.key"
+    state: present
+
+- name: Add Telegraf repository
+  apt_repository:
+    repo: "deb https://repos.influxdata.com/{{ ansible_distribution|lower }} {{ ansible_distribution_release }} stable"
+    filename: "telegraf"
+    state: present
+
+- name: "Debian | Install Telegraf package"
+  apt:
+    name: "telegraf"
+    state: "latest"
+    update_cache: yes
+  notify: Restart Telegraf
+

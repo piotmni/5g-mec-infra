@@ -1,0 +1,62 @@
+---
+# handlers file for free5gc
+- name: daemon_reload
+  systemd:
+    daemon_reload: yes
+
+
+- name: restart amf
+  systemd:
+    name: free5gc-amfd
+    state: restarted
+
+- name: restart nrf
+  systemd:
+    name: free5gc-nrfd
+    state: restarted
+
+- name: restart smf
+  systemd:
+    name: free5gc-smfd
+    state: restarted
+
+- name: restart n3iwfcfg
+  systemd:
+    name: free5gc-n3iwfcfgd
+    state: restarted
+
+- name: restart ausf
+  systemd:
+    name: free5gc-ausfd
+    state: restarted
+
+- name: restart udm
+  systemd:
+    name: free5gc-udmd
+    state: restarted
+
+- name: restart udr
+  systemd:
+    name: free5gc-udrd
+    state: restarted
+
+- name: restart pcf
+  systemd:
+    name: free5gc-pcfd
+    state: restarted
+
+- name: restart nssf
+  systemd:
+    name: free5gc-nssfd
+    state: restarted
+
+- name: restart upf
+  systemd:
+    name: free5gc-upfd
+    state: restarted
+
+- name: restart webconsole
+  systemd:
+    name: free5gc-webconsoled
+    state: restarted
+

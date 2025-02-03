@@ -1,0 +1,232 @@
+---
+### ROLE CONFIG ###
+haproxy_cert_file: '../files/certificates/piotmni.pl.pem'
+
+haproxy_version: '2.4'
+
+haproxy_cert_contenet_copy: True
+haproxy_cert_dirs:
+  - path: /etc/haproxy/certs/
+    owner: root
+    group: root
+
+haproxy_global_stats:
+  sockets:
+    - listen: /var/run/haproxy.stat
+      param:
+        - mode 660
+        - level admin
+        - user haproxy
+        - group haproxy
+  timeout: 2m
+
+
+### TLS options and configuration
+haproxy_global_ssl_default_bind_ciphers: 'ECDHE-ECDSA-AES128-GCM-SHA256:ECDHE-RSA-AES128-GCM-SHA256:ECDHE-ECDSA-AES256-GCM-SHA384:ECDHE-RSA-AES256-GCM-SHA384:ECDHE-ECDSA-CHACHA20-POLY1305:ECDHE-RSA-CHACHA20-POLY1305:DHE-RSA-AES128-GCM-SHA256:DHE-RSA-AES256-GCM-SHA384'
+haproxy_global_ssl_default_bind_ciphersuites: 'TLS_AES_128_GCM_SHA256:TLS_AES_256_GCM_SHA384:TLS_CHACHA20_POLY1305_SHA256'
+haproxy_global_ssl_default_bind_options: 'prefer-client-ciphers no-sslv3 no-tlsv10 no-tls-tickets'
+haproxy_global_ssl_default_server_ciphers: 'ECDHE-ECDSA-AES128-GCM-SHA256:ECDHE-RSA-AES128-GCM-SHA256:ECDHE-ECDSA-AES256-GCM-SHA384:ECDHE-RSA-AES256-GCM-SHA384:ECDHE-ECDSA-CHACHA20-POLY1305:ECDHE-RSA-CHACHA20-POLY1305:DHE-RSA-AES128-GCM-SHA256:DHE-RSA-AES256-GCM-SHA384'
+haproxy_global_ssl_default_server_ciphersuites: 'TLS_AES_128_GCM_SHA256:TLS_AES_256_GCM_SHA384:TLS_CHACHA20_POLY1305_SHA256'
+haproxy_global_ssl_default_server_options: 'no-sslv3 no-tlsv10 no-tls-tickets'
+
+haproxy_dh_param_file:
+  url: 'https://ssl-config.mozilla.org/ffdhe2048.txt'
+  dest: /etc/haproxy/dhparams.pem
+
+haproxy_global_chroot: /var/lib/haproxy
+#haproxy_global_chroot: "/var/empty"
+haproxy_global_maxconn: 10000
+
+haproxy_global_tune:
+  - key: 'ssl.default-dh-param'
+    value: 2048
+haproxy_global_log:
+  - address: '/dev/log'
+    facility: local3
+    level: info
+  - address: '/dev/log'
+    facility: local3
+    level: notice
+  - address: '/dev/log'
+    facility: local3
+    level: err
+
+haproxy_global_raw_options:
+  - "pidfile /var/run/haproxy.pid"
+
+haproxy_defaults_option:
+  - httplog
+  - redispatch
+
+haproxy_default_raw_options:
+  - retries 3
+
+haproxy_defaults_timeout:
+  - type: connect
+    timeout: 10s
+  - type: client
+    timeout: 30s
+  - type: server
+    timeout: 60s
+
+haproxy_global_ca_base: false
+haproxy_global_crt_base: false
+haproxy_defaults_errorfile: false
+haproxy_global_nbproc: false
+
+haproxy_userlists:
+  - name: basic_auth_users
+    users:
+      - name: "mgmt"
+        password: "{{ 'mgmt' |  password_hash('sha512') }}"
+
+haproxy_frontend:
+  - name: stats
+    bind:
+      - listen: '127.0.0.1:8404'
+    mode: 'http'
+    raw_options:
+      - "http-request set-log-level silent"
+    stats:
+      enable: true
+      uri: /
+      options:
+        - show-node
+      refresh: 10s
+      admin: if LOCALHOST
+
+  - name: main_frontend
+    bind:
+      - listen: "0.0.0.0:80"
+        param:
+          - name
+          - clear
+      - listen: "0.0.0.0:443"
+        param:
+          - ssl
+          - 'crt /etc/haproxy/certs/piotmni.pl.pem'
+          - alpn
+          - h2,http/1.1
+    http_request:
+      - action: "redirect"
+        param: "scheme https unless { ssl_fc }"
+    raw_options:
+      - "log global"
+      - "http-request capture req.hdr(X-Forwarded-For) len 20"
+      - "http-request capture req.hdr(Referer) len 100"
+      - "http-request capture req.body len 2048"
+    logformat: '"%tr";"%{+Q}ci";"%tsc";"%[capture.req.hdr(0)]";"%{+Q}HM";"%{+Q}HU";"%{+Q}HV";"%si:%sp";"%ST";"%U";"%[capture.req.hdr(1)]";"%Tr";"%[capture.req.hdr(2)]"'
+
+    mode: 'http'
+    option:
+      - httplog
+      - dontlognull
+    maxconn: 8000
+    use_backend:
+      - "grafana.piotmni.pl if { hdr(Host) -i grafana.piotmni.pl } "
+      - "prom.piotmni.pl if { hdr(Host) -i prom.piotmni.pl }       "
+      - "open5gs-webui.piotmni.pl if { hdr(Host) -i open5gs-webui.piotmni.pl } "
+      - "nomad.piotmni.pl if { hdr(Host) -i nomad.piotmni.pl } "
+      - "consul.piotmni.pl if { hdr(Host) -i consul.piotmni.pl } "
+
+_haproxy_http_response: &_haproxy_http_response
+  http_response:
+    - action: "add-header"
+      param: "X-Frame-Options"
+      cond: "deny"
+
+_haproxy_backend_config_template: &_haproxy_backend_config_template
+  <<: *_haproxy_http_response
+  mode: http
+  balance: roundrobin
+  default_server_params:
+     - "check maxconn 20"
+  cookie: "PPGINFRSESSID insert indirect nocache"
+  option:
+    - httpchk HEAD /
+
+_haproxy_acl_userlogin_template: &_haproxy_acl_userlogin_template
+  acl:
+    - string: "AuthProm http_auth(basic_auth_users)"
+  http_request:
+    - action: "auth"
+      param: "realm Prometheus if !AuthProm"
+
+
+server_template: &server_template
+  param:
+    - resolvers
+    - consul
+    - resolve-opts
+    - allow-dup-ip
+    - resolve-prefer
+    - ipv4
+    - check
+    - init-addr none
+
+haproxy_backend:
+  - name: grafana.piotmni.pl
+    <<: *_haproxy_backend_config_template
+    timeout:
+      - type: server
+        timeout: 2m
+    server:
+      - name: "s1"
+        listen: "10.30.1.12:3000"
+        param:
+          - "check cookie s1"
+
+  - name: prom.piotmni.pl
+    <<: *_haproxy_backend_config_template
+    <<: *_haproxy_acl_userlogin_template
+    option:
+      - httpchk GET /
+    server:
+      - name: "s1"
+        listen: "10.30.1.12:9090"
+        param:
+          - "check cookie s1"
+
+  - name: nomad.piotmni.pl
+    <<: *_haproxy_backend_config_template
+    <<: *_haproxy_acl_userlogin_template
+    option:
+      - httpchk OPTIONS /ui/
+    server:
+      - name: "s1"
+        listen: "10.30.1.20:4646"
+
+      - name: "s2"
+        listen: "10.30.1.21:4646"
+
+      - name: "s3"
+        listen: "10.30.1.20:4646"
+
+  - name: consul.piotmni.pl
+    <<: *_haproxy_backend_config_template
+    <<: *_haproxy_acl_userlogin_template
+    option:
+      - httpchk GET /
+    server:
+      - name: "s1"
+        listen: "10.30.1.20:8500"
+
+      - name: "s2"
+        listen: "10.30.1.21:8500"
+
+      - name: "s3"
+        listen: "10.30.1.20:8500"
+
+  - name: open5gs-webui.piotmni.pl
+    <<: *_haproxy_backend_config_template
+#    <<: *_haproxy_acl_userlogin_template
+    option:
+      - httpchk GET /
+    server:
+      - name: "s1"
+        listen: "10.30.1.10:3000"
+        param:
+          - "check cookie s1"
+
+
+

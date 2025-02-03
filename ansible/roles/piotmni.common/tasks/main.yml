@@ -1,0 +1,23 @@
+---
+- name: Set nopasswd for sudo group
+  lineinfile:
+    path: /etc/sudoers
+    state: present
+    regexp: '^%sudo'
+    line: '%sudo ALL=(ALL) NOPASSWD: ALL'
+    validate: 'visudo -cf %s'
+
+- name: Create users
+  include_tasks: add_users.yml
+  loop: '{{ common_users }}'
+  loop_control:
+    loop_var: user
+
+- name: Basic network operations
+  include_tasks: setup_basic_net.yml
+
+- name: Set hostname
+  hostname:
+    name: '{{ inventory_hostname }}.{{ hostname_domain }}'
+  when: set_hostname
+

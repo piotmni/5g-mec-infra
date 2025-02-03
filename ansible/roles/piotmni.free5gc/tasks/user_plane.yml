@@ -1,0 +1,36 @@
+---
+- include_tasks: gtp5g.yml
+
+- name: free5gc-user-plane | configs
+  ansible.builtin.template:
+    src: "configs/{{ item }}cfg.yaml"
+    dest: "/etc/free5gc/{{ item }}.yaml"
+  loop: '{{ user_plane_nfs }}'
+  notify: 'restart {{ item }}'
+
+- name: free5gc-user-plane | systemd units
+  ansible.builtin.template:
+    src: "services/free5gc-{{ item }}d.service"
+    dest: "/lib/systemd/system/free5gc-{{ item }}d.service"
+  loop: '{{ user_plane_nfs }}'
+  notify: daemon_reload
+
+- name: free5gc-user-plane | create nat rules
+  ansible.builtin.iptables:
+    table: nat
+    chain: POSTROUTING
+    out_interface: '!upfgtp'
+    source: '{{ item.addr }}'
+    jump: MASQUERADE
+  loop: "{{ free5gc_dnns[inventory_hostname] }}"
+
+- name: free5gc-user-plane | make nat rules persistant
+  ansible.builtin.shell:
+    cmd: /sbin/iptables-save > /etc/iptables/rules.v4
+
+- name: free5gc-user-plane | make sure services are started and enabled
+  ansible.builtin.systemd:
+    name: "free5gc-{{ item }}d"
+    state: started
+    enabled: yes
+  loop: '{{ user_plane_nfs }}'

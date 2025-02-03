@@ -1,0 +1,71 @@
+---
+- hosts:
+    - open5gs
+    - open5gs-core
+    - open5gs-user-plane
+  become: yes
+  serial: 1
+  vars:
+    wireguard_peers:
+      open5gs-core-de:
+        - { peer: "", allowed_ips: "10.50.0.2/32" }
+        - { peer: "", allowed_ips: "10.50.0.3/32" } # aws instance
+      open5gs-upf-waw-1:
+        - { peer: "", allowed_ips: "10.51.0.2/32" }
+      open5gs-upf-waw-2:
+        - { peer: "", allowed_ips: "10.51.0.2/32" }
+      open5gs-upf-waw-3:
+        - { peer: "", allowed_ips: "10.51.0.2/32" }
+      open5gs-upf-bhs-1:
+        - { peer: "", allowed_ips: "10.52.0.2/32" }
+        - { peer: "IwUdlgcaNq7q4ej0GCb9JrIBJZxhXMexgf08yqLtmnA=", allowed_ips: "10.52.0.3/32" } # aws instance
+      open5gs-upf-de-1:
+        - { peer: "", allowed_ips: "10.53.0.2/32" }
+
+    local_interface_name_binding:
+      open5gs-core-de: wg0
+      open5gs-upf-waw-1: wg1
+      open5gs-upf-bhs-1: wg2
+      open5gs-upf-de-1: wg3
+
+    wireguard_network:
+      wg0: "10.50.0.0/24"
+      wg1: "10.51.0.0/24"
+      wg2: "10.52.0.0/24"
+      wg3: "10.53.0.0/24"
+
+  tasks:
+    - name: "add peers to wireguard server"
+      blockinfile:
+        path: "/etc/wireguard/wg0.conf"
+        marker: "# {mark} ANSIBLE MANAGED BLOCK {{ item.allowed_ips }}"
+        block: |
+          [Peer]
+          PublicKey = {{ item.peer }}
+          AllowedIPs = {{ item.allowed_ips }}
+          PersistentKeepalive = 30
+      loop: "{{ wireguard_peers[inventory_hostname] }}"
+      when: wireguard_peers is defined
+
+    - name: "register pub key"
+      shell: "cat /etc/wireguard/server_public.key"
+      register: pub_key
+
+    - name: restart wireguard server
+      service:
+        name: "wg-quick@wg0"
+        state: "{{ item }}"
+      loop:
+        - stopped
+        - started
+
+    - name: "update local wg config"
+      debug:
+        msg: |
+          Paste in "/etc/wireguard/{{ local_interface_name_binding[inventory_hostname] }}.conf"
+          [Peer]
+          PublicKey = {{ pub_key.stdout }}
+          AllowedIPs = 10.30.0.0/16,{{ wireguard_network[local_interface_name_binding[inventory_hostname]] }}
+          Endpoint = {{ ansible_host }}:51820
+          PersistentKeepalive = 30
+

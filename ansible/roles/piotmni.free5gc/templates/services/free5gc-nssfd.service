@@ -1,0 +1,23 @@
+[Unit]
+Description=Free5gc nssf NF
+PartOf=free5gc-core.target
+After=free5gc-core.target
+After=free5gc-ausfd.service
+Requires=free5gc-ausfd.service
+
+[Service]
+Type=simple
+
+User=free5gc
+Group=free5gc
+Restart=always
+
+
+# this is dumb but for now let it stay
+ExecStartPost=/bin/sleep 4
+ExecStart=/usr/bin/free5gc-nssf -c /etc/free5gc/nssf.yaml -l /var/log/free5gc/nssf.log
+RestartSec=2
+ExecReload=/bin/kill -HUP $MAINPID
+
+[Install]
+WantedBy=free5gc-core.target

@@ -1,0 +1,6 @@
+---
+telegraf_enabled: True
+telegraf_service_path: /usr/lib/systemd/system/telegraf.service
+telegraf_agent_hostname: "{{ inventory_hostname }}.{{ dc }}.piotmni.pl"
+telegraf_agent_config_path: /etc/telegraf
+

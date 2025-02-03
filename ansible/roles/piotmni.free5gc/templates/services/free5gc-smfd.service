@@ -1,0 +1,21 @@
+[Unit]
+Description=Free5gc smf NF
+PartOf=free5gc-core.target
+After=free5gc-core.target free5gc-pcfd.service
+Requires=free5gc-pcfd.service
+
+[Service]
+Type=simple
+
+User=free5gc
+Group=free5gc
+Restart=always
+
+# this is dumb but for now let it stay
+ExecStartPost=/bin/sleep 7
+ExecStart=/usr/bin/free5gc-smf -c /etc/free5gc/smf.yaml -l /var/log/free5gc/smf.log --uerouting /etc/free5gc/uerouting.yaml
+RestartSec=2
+ExecReload=/bin/kill -HUP $MAINPID
+
+[Install]
+WantedBy=free5gc-core.target

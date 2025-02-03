@@ -1,0 +1,5 @@
+---
+nomad_host_role: client
+consul_host_role: client
+
+consul_domain: "piotmni.pl"

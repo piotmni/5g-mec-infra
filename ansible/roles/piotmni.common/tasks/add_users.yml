@@ -1,0 +1,24 @@
+---
+- name: Ensure groups "{{ user.groups }}" for user "{{ user.name }}" exists
+  group:
+    name: '{{ item }}'
+    state: present
+  loop: '{{ user.groups }}'
+  when: '"groups" in user'
+
+- name: Ensure user "{{ user.name }}" exists
+  user:
+    name: "{{ user.name }}"
+    group: "{{ user.group | default(omit) }}"
+    groups: "{{ user.groups | default(omit) }}"
+    state: '{{ user.state | default("present") }}'
+    password: '{{ user.password | default(omit) }}'
+    update_password: '{{ user.update_password | default(omit) }}'
+    shell: '{{ user.shell | default("/bin/bash") }}'
+
+- name: Ensure authorized keys for {{ user.name }} are set
+  authorized_key:
+    user: '{{ user.name }}'
+    state: present
+    key: "{{ user.authorized_key }}"
+  when: user.authorized_key is defined

@@ -1,0 +1,137 @@
+# {# helper variables for templating #}
+
+# {% set snssaiInfos = [] %}
+
+
+#{% for hostname, sNssaiList in free5gc_upf_configs.items() %}
+#{% for config in sNssaiList  %}
+
+#{% if config not in snssaiInfos %}
+#{{ snssaiInfos.append(config) }}
+#{% endif %}
+
+
+#{% endfor %}
+#{% endfor %}
+
+
+
+info:
+  version: 1.0.2
+  description: SMF initial local configuration
+
+configuration:
+  smfName: SMF # the name of this SMF
+  sbi: # Service-based interface information
+    scheme: http # the protocol for sbi (http or https)
+    registerIPv4: 127.0.0.2 # IP used to register to NRF
+    bindingIPv4: 127.0.0.2  # IP used to bind the service
+    port: 8000 # Port used to bind the service
+    tls: # the local path of TLS key
+      key: config/TLS/smf.key # SMF TLS Certificate
+      pem: config/TLS/smf.pem # SMF TLS Private key
+  serviceNameList: # the SBI services provided by this SMF, refer to TS 29.502
+    - nsmf-pdusession # Nsmf_PDUSession service
+    - nsmf-event-exposure # Nsmf_EventExposure service
+    - nsmf-oam # OAM service
+
+  snssaiInfos: # the S-NSSAI (Single Network Slice Selection Assistance Information) list supported by this AMF
+
+    #{%- for snssaiInfo in snssaiInfos %}
+
+    - sNssai: # S-NSSAI (Single Network Slice Selection Assistance Information)
+        sst: {{ snssaiInfo.sNssai.sst }} # Slice/Service Type (uinteger, range: 0~255)
+        sd: {{ snssaiInfo.sNssai.sd }} # Slice Differentiator (3 bytes hex string, range: 000000~FFFFFF)
+
+      dnnInfos: # DNN information list
+
+        #{%- for dnninfo in snssaiInfo.dnnUpfInfoList %}
+
+        - dnn: {{ dnninfo.dnn }} # Data Network Name
+          dns: # the IP address of DNS
+            ipv4: 1.1.1.1
+
+        #{%- endfor %}
+
+
+    #{%- endfor %}
+
+
+  plmnList: # the list of PLMN IDs that this SMF belongs to (optional, remove this key when unnecessary)
+    - mcc: "208" # Mobile Country Code (3 digits string, digit: 0~9)
+      mnc: "93" # Mobile Network Code (2 or 3 digits string, digit: 0~9)
+  locality: area1 # Name of the location where a set of AMF, SMF and UPFs are located
+  pfcp: # the IP address of N4 interface on this SMF (PFCP)
+    addr: {{ smf_address }}
+  userplaneInformation: # list of userplane information
+    upNodes: # information of userplane node (AN or UPF)
+      gNB1: # the name of the node
+        type: AN # the type of the node (AN or UPF)
+
+      #{%- for hostname, config in free5gc_upf_configs.items() %}
+
+      {{hostname}}:
+
+        type: UPF
+        nodeID: {{ free5gc_upf_ip_address[inventory_hostname]['pfcp'] }} # the IP/FQDN of N4 interface on this UPF (PFCP)
+        sNssaiUpfInfos:
+
+        #{%- for snssaiInfo in config %}
+
+          - sNssai:
+              sst: {{ snssaiInfo.sNssai.sst }}
+              sd: {{ snssaiInfo.sNssai.sd }}
+
+            dnnUpfInfoList:
+            #{%- for dnninfo in snssaiInfo.dnnUpfInfoList %}
+
+              - dnn: {{ dnninfo.dnn }}
+                pools:
+
+                  # {%- for pool in dnninfo.pools %}
+
+                  - cidr: {{ pool.cidr }}
+
+                  # {%- endfor %}
+
+            #{%- endfor %}
+
+        #{%- endfor %}
+
+        interfaces:
+          - interfaceType: N3
+            endpoints:
+              - {{ free5gc_upf_ip_address[inventory_hostname]['gtpu'] }}
+
+            #todo add flexibility
+            networkInstance: internet
+
+      #{%- endfor %}
+
+    links: # the topology graph of userplane, A and B represent the two nodes of each link
+      - A: gNB1
+        # todo add flexibility
+        B: default
+
+
+  nrfUri: http://127.0.0.10:8000 # a valid URI of NRF
+
+# the kind of log output
+# debugLevel: how detailed to output, value: trace, debug, info, warn, error, fatal, panic
+# ReportCaller: enable the caller report or not, value: true or false
+logger:
+  SMF:
+    debugLevel: info
+    ReportCaller: false
+  NAS:
+    debugLevel: info
+    ReportCaller: false
+  NGAP:
+    debugLevel: info
+    ReportCaller: false
+  Aper:
+    debugLevel: info
+    ReportCaller: false
+  PFCP:
+    debugLevel: info
+    ReportCaller: false

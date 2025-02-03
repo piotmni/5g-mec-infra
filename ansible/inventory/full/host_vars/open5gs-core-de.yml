@@ -1,0 +1,31 @@
+---
+wireguard_address: "10.50.0.1"
+
+control_plane_node: True
+user_plane_node: True
+open5gs_node_type: "full" # full or separated
+
+# adress configs
+amf_ngap_address: '{{ wireguard_address }}'
+upf_address_gtpu: '{{ wireguard_address }}'
+
+subscribers:
+  - imsi: 999700000000001
+    dn: internet
+  - imsi: 999700000000002
+    dn: internet
+  - imsi: 999700000000003
+    dn: internet
+
+upf_subnets:
+  open5gs-core-de:
+    - addr: 10.45.0.1/16
+      subnet: 10.45.0.0/16
+      dnn: internet
+      dev: ogstun
+
+iptables_filter_rules:
+  - {port: 38412, action: 'ACCEPT', protocol: 'sctp', interface: 'wg0', chain: 'INPUT' }
+
+iptables_nat_rules:
+  - {chain: 'POSTROUTING', action: 'MASQUERADE', source_addr: '10.45.0.0/16', out_interface: 'ogstun',  negate_out_interface: true}

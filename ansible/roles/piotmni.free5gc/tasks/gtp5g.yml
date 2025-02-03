@@ -1,0 +1,16 @@
+---
+- name: free5gc-user-plane | clone gtp5g git repository
+  ansible.builtin.git:
+    repo: 'https://github.com/free5gc/gtp5g.git'
+    dest: /opt/free5gc_gtp5g
+    clone: yes
+    version: "{{ gtp5g_version }}"
+
+- name: free5gc-user-plane | compile gtp5g module
+  make:
+    chdir: /opt/free5gc_gtp5g
+
+- name: free5gc-user-plane | install gtp5g module
+  make:
+    chdir: /opt/free5gc_gtp5g
+    target: install

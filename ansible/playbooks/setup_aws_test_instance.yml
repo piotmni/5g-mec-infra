@@ -1,0 +1,107 @@
+- hosts:
+    - test-instances
+  become: yes
+  #  vars_files:
+  #    - ../vars/secrets.yml
+  #    - ../vars/users.yml
+  vars:
+    # IMPORTAN SET
+    scenario: "separated"
+    wireguard_files:
+      - { dest: server_private.key, content: "" }
+      - { dest: server_public.key, content: "" }
+    gtp_ip:
+      full: 10.50.0.3
+      separated: 10.52.0.3
+
+    dnn_name:
+      full: "internet"
+      separated: "internet-bhs"
+
+  tasks:
+    - name: stop docker
+      ansible.builtin.service:
+        name: docker
+        state: stopped
+        enabled: no
+    - name: stop nr-gnb and nr-ue systemd services
+      ansible.builtin.service:
+        name: "{{ item }}"
+        state: stopped
+        enabled: no
+      loop:
+        - nr-gnb
+        - nr-ue
+
+    - name: "copy wireguard keys"
+      ansible.builtin.copy:
+        content: "{{ item.content }}"
+        dest: "/etc/wireguard/{{ item.dest }}"
+        owner: root
+        group: root
+        mode: 0600
+      loop: "{{ wireguard_files }}"
+
+    - name: copy basic wg0 config
+      ansible.builtin.copy:
+        content: "{{ wg0_content }}"
+        dest: "/etc/wireguard/wg0.conf"
+
+    - name: copy basic wg1 config
+      ansible.builtin.copy:
+        content: "{{ wg1_content }}"
+        dest: "/etc/wireguard/wg1.conf"
+
+    - name: copy gnb config
+      ansible.builtin.copy:
+        content: "{{ gnb_config_content }}"
+        dest: "/etc/ueransim/gnb.yaml"
+
+    - name: copy ue config
+      ansible.builtin.copy:
+        content: "{{ ue_config_content }}"
+        dest: "/etc/ueransim/ue.yaml"
+
+
+    #    - name: "docker pull ueransim"
+    #      ansible.builtin.shell: docker pull piotmni/ueransim:1.0.1-ubuntu
+
+    # now update peers config in wireguard and start container
+    #- name: "docker start container"
+    #  ansible.builtin.shell: docker run -it -d --name ue1 --privileged --cap-add=NET_ADMIN -v /etc/ueransim/ue.yaml:/configs/ue.yaml piotmni/ueransim:1.0.1-ubuntu ./nr-ue -c /configs/ue.yaml
+#docker run -it -d --name ue1 --privileged --net=host --cap-add=NET_ADMIN -v /etc/ueransim/ue.yaml:/configs/ue.yaml piotmni/ueransim:1.0.0-ubuntu ./nr-ue -c /configs/ue.yaml
+#docker exec -it ue1 /bin/bash
+
+
+#apt update
+#apt install -y iputils-ping curl
+#ip route add 10.45.0.0/16 dev uesimtun0
+#ip route add 10.30.0.0/16 via 10.45.0.1
+#ip route add 172.28.1.0/24 via 172.17.0.1
+#ip route del default via 172.17.0.1
+#ip route add default via 10.45.0.1
+#echo "nameserver 1.1.1.1" > /etc/resolv.conf
+#
+#curl -s https://packagecloud.io/install/repositories/ookla/speedtest-cli/script.deb.sh | sudo bash
+#apt-get install speedtest
+#
+#
+#speedtest -I uesimtun0 -s 4166
+#speedtest -I uesimtun0 -s 7200
+#speedtest -I uesimtun0 -s 7175
+#speedtest -I uesimtun0 -s 30514
+#speedtest -I uesimtun0 -s 58956
+#speedtest -I uesimtun0 -s 54836
+#
+
+
+
+# ufw disable
+# systemctl stop nr-gnb
+# systemctl stop nr-ue
+# systemctl start wg-quick@wg0
+# systemctl restart nr-gnb
+# systemctl restart nr-ue
+# ip route add 10.45.0.0/16 dev uesimtun0
+
+

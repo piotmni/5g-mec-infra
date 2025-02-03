@@ -1,0 +1,25 @@
+---
+- include_tasks: update.yml
+
+- include_tasks: disable_swap.yml
+
+- name: Install python3
+  apt:
+    name: python3
+    update_cache: yes
+
+- name: Install python3-pip
+  apt:
+    name: python3-pip
+    update_cache: yes
+
+- name: Block ubuntu user
+  ansible.builtin.user:
+    name: ubuntu
+    shell: /usr/sbin/nologin
+
+- name: Set vim as a default editor
+  lineinfile:
+    path: /etc/bash.bashrc
+    line: "export EDITOR=vim"
+

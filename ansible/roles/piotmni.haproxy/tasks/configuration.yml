@@ -1,0 +1,35 @@
+---
+- name: Ensure {{ haproxy_global_chroot }} exists
+  file:
+    path: '{{ haproxy_global_chroot }}'
+    state: directory
+  when: haproxy_global_chroot is defined
+  tags: configure
+
+- name: Download dh-param file
+  get_url:
+    url: '{{ haproxy_dh_param_file.url }}'
+    dest: '{{ haproxy_dh_param_file.dest }}'
+  when: haproxy_dh_param_file and haproxy_dh_param_file is defined
+  notify: restart haproxy
+  tags: configure
+
+- name: Increase LimitNOFILE
+  lineinfile:
+    path: /usr/lib/systemd/system/haproxy.service
+    insertafter: '^[Service]'
+    line: 'LimitNOFILE={{ haproxy_limit_nofile }}'
+  when: haproxy_limit_nofile is defined
+  notify: restart haproxy
+  tags: configure
+
+- name: Update file
+  template:
+    src: "{{ haproxy_conf_template }}"
+    dest: /etc/haproxy/haproxy.cfg
+    owner: root
+    group: root
+    mode: 0640
+    validate: 'haproxy -f %s -c'
+  notify: restart haproxy
+  tags: configure

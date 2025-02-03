@@ -1,0 +1,8 @@
+---
+wireguard_address: "10.51.0.1"
+upf_address_gtpu: "{{ wireguard_address }}"
+upf_address_pfcp: "{{ internal }}"
+
+iptables_nat_rules:
+  - {chain: 'POSTROUTING', action: 'MASQUERADE', source_addr: '10.45.0.0/16', out_interface: 'ogstun',  negate_out_interface: true}
+

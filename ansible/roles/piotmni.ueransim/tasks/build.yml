@@ -1,0 +1,36 @@
+---
+- name: Ensure all required packages are installed
+  ansible.builtin.apt:
+    name: "{{item}}"
+    state: present
+    update_cache: true
+  loop: '{{ required_packages }}'
+
+# todo change it to build cmake from source
+- name: Ensure cmake snap with option --classic
+  snap:
+    name: cmake
+    state: present
+    classic: yes
+
+- name: Check if already build
+  stat:
+    path: /opt/ueransim/build/nr-gnb
+  register: nr_gnb_stat
+
+- name: Clone git repository
+  ansible.builtin.git:
+    repo: 'https://github.com/aligungr/UERANSIM'
+    dest: /opt/ueransim/
+    clone: yes
+    version: "{{ ueransim_version }}"
+    update: no
+  when: not nr_gnb_stat.stat.exists
+
+- name: Compile ueransim if not already build
+  make:
+    chdir: /opt/ueransim
+    params:
+      NUM_THREADS: 4
+  when: not nr_gnb_stat.stat.exists
+

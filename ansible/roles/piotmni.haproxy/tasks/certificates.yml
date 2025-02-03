@@ -1,0 +1,19 @@
+# tasks file for haproxy
+---
+- name: Create dirs for certificates
+  file:
+    path: "{{ item.path }}"
+    state: directory
+    owner: "{{ item.owner | default('root') }}"
+    group: "{{ item.group | default('root') }}"
+    mode: 0750
+  with_items: "{{ haproxy_cert_dirs }}"
+  when: haproxy_cert_dirs is defined and haproxy_cert_contenet_copy is defined and haproxy_cert_contenet_copy
+
+- name: Copy cert file
+  copy:
+    src: "{{ haproxy_cert_file }}"
+    dest: /etc/haproxy/certs
+    mode: 0644
+  when: haproxy_cert_file != ""
+

@@ -1,0 +1,20 @@
+---
+- name: Create group ueransim
+  ansible.builtin.group:
+    name: ueransim
+
+- name: Create user ueransim
+  ansible.builtin.user:
+    name: ueransim
+    group: ueransim
+    shell: '/bin/false'
+
+- include_tasks: build.yml
+
+- include_tasks: gnb.yml
+  when: ueransim_node_type == "gnb" or ueransim_node_type == "full"
+
+- include_tasks: ue.yml
+  when: ueransim_node_type == "ue" or ueransim_node_type == "full"
+
+

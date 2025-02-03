@@ -1,0 +1,21 @@
+[Unit]
+Description=Free5gc n3iwf NF
+PartOf=free5gc-core.target
+After=free5gc-core.target
+After=free5gc-smfd.service
+Requires=free5gc-smfd.service
+
+[Service]
+Type=simple
+
+User=free5gc
+Group=free5gc
+
+Restart=always
+
+ExecStart=/usr/bin/free5gc-n3iwf -c /etc/free5gc/n3iwf.yaml -l /var/log/free5gc/n3iwf.log
+RestartSec=2
+ExecReload=/bin/kill -HUP $MAINPID
+
+[Install]
+WantedBy=free5gc-core.target

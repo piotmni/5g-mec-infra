@@ -1,0 +1,48 @@
+services_4g:
+  - mme
+  - hss
+  - pcrf
+  - sgwc
+  - sgwu
+
+services_5g_control_plane:
+  - nrf
+  - scp
+  - amf
+  - smf
+  - ausf
+  - udm
+  - udr
+  - pcf
+  - nssf
+  - bsf
+
+services_5g_user_plane:
+  - upf
+
+# based on group vars
+#control_plane_node: False
+#user_plane_node: False
+
+open5gs_node_type: "full" # available options: full, control, user
+
+upf_subnets:
+  open5gs-core-de:
+    - addr: 10.45.0.1/16
+      subnet: 10.45.0.0/16
+      dnn: internet
+      dev: ogstun
+
+# adress configs
+amf_ngap_address: 127.0.0.5
+smf_address: 127.0.0.4
+pcf_sbi_address: 127.0.0.13
+upf_address_gtpu: 127.0.0.7
+upf_address_pfcp: 127.0.0.7
+
+upf_pfcp_address:
+  open5gs-core-de: 127.0.0.7
+
+subscribers:
+  - imsi: 999700000000001
+    dn: internet

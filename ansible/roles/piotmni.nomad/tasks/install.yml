@@ -1,0 +1,14 @@
+---
+- name: ensure unzip is present
+  package:
+    name: unzip
+
+- name: install nomad
+  unarchive:
+    src: '{{ nomad_bin_url }}'
+    remote_src: yes
+    dest: '{{ nomad_bin_dir }}'
+    owner: root
+    group: root
+  notify: restart_nomad
+

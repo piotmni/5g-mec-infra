@@ -1,0 +1,106 @@
+# defaults file for haproxy
+---
+### INSTALL
+
+haproxy_versions_supported:
+  - '1.5'
+  - '1.6'
+  - '1.7'
+  - '1.8'
+  - '1.9'
+  - '2.0'
+  - '2.1'
+  - '2.2'
+  - '2.3'
+  - '2.4'
+
+haproxy_dependencies_pre:
+  - software-properties-common
+  - dirmngr
+
+haproxy_ppa: "ppa:vbernat/haproxy-{{ haproxy_version }}"
+haproxy_use_ppa: true
+haproxy_version: 2.4
+
+
+### CERTIFICATES
+haproxy_cert_dirs: []
+haproxy_cert_file: ''
+
+### CONFIGURATION
+haproxy_conf_template: "etc/haproxy/haproxy.cfg.j2"
+
+# global section
+haproxy_global_log:
+  - address: /dev/log
+    facility: local0
+  - address: /dev/log
+    facility: local1
+    level: notice
+
+haproxy_global_stats:
+  sockets:
+    - listen: /run/haproxy/admin.sock
+  timeout: 30s
+
+haproxy_global_user: haproxy
+haproxy_global_group: haproxy
+haproxy_global_daemon: true
+haproxy_global_ca_base: /etc/ssl/certs
+haproxy_global_crt_base: /etc/ssl/private
+haproxy_global_ssl_default_bind_ciphers: 'kEECDH+aRSA+AES:kRSA+AES:+AES256:RC4-SHA:!kEDH:!LOW:!EXP:!MD5:!aNULL:!eNULL'
+haproxy_global_ssl_default_bind_ciphersuites: ''
+haproxy_global_ssl_default_bind_options: 'no-sslv3'
+haproxy_global_ssl_default_server_ciphers: 'kEECDH+aRSA+AES:kRSA+AES:+AES256:RC4-SHA:!kEDH:!LOW:!EXP:!MD5:!aNULL:!eNULL'
+haproxy_global_ssl_default_server_ciphersuites: ''
+haproxy_global_ssl_default_server_options: 'no-sslv3'
+haproxy_global_nbproc: 1
+haproxy_global_option: []
+
+# defaults section
+haproxy_defaults_log: global
+haproxy_defaults_mode: http
+haproxy_defaults_option:
+  - httplog
+  - dontlognull
+haproxy_default_server_params: []
+
+haproxy_defaults_timeout:
+  - type: connect
+    timeout: 5000
+  - type: client
+    timeout: 50000
+  - type: server
+    timeout: 50000
+
+haproxy_defaults_errorfile:
+  - code: 400
+    file: /etc/haproxy/errors/400.http
+  - code: 403
+    file: /etc/haproxy/errors/403.http
+  - code: 408
+    file: /etc/haproxy/errors/408.http
+  - code: 500
+    file: /etc/haproxy/errors/500.http
+  - code: 502
+    file: /etc/haproxy/errors/502.http
+  - code: 503
+    file: /etc/haproxy/errors/503.http
+  - code: 504
+    file: /etc/haproxy/errors/504.http
+
+# listen section
+haproxy_listen: []
+
+# front-end section
+haproxy_frontend: []
+
+# back-end section
+haproxy_backend: []
+
+# user-lists section
+haproxy_userlists: []
+
+# resolvers section:
+haproxy_resolvers: []
+

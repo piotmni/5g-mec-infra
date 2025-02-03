@@ -1,0 +1,39 @@
+# full
+#- name: ue1
+#  memory: 1024
+#  cpus: 2
+#  imsi: 999700000000001
+#  dnn: internet
+#  gnb_address: 192.168.1.48
+##  dns_address: 10.30.1.31
+#  dns_address: 1.1.1.1
+#  upf_subnet: 10.45.0.0/16
+#
+#- name: ue2
+#  memory: 1024
+#  cpus: 2
+#  imsi: 999700000000002
+#  dnn: internet
+#  gnb_address: 192.168.1.48
+#  dns_address: 10.30.1.31
+#  upf_subnet: 10.45.0.0/16
+
+# separated
+- name: ue1
+  memory: 2048
+  cpus: 4
+  imsi: 999700000000001
+  dnn: internet-waw
+  gnb_address: 192.168.1.48
+  dns_address: 10.30.0.40
+#  dns_address: 1.1.1.1
+  upf_subnet: 10.45.0.0/16
+#
+#- name: ue2
+#  memory: 1024
+#  cpus: 2
+#  imsi: 999700000000002
+#  dnn: internet-waw
+#  gnb_address: 192.168.0.74
+#  dns_address: 10.30.0.40
+#  upf_subnet: 10.45.0.0/16

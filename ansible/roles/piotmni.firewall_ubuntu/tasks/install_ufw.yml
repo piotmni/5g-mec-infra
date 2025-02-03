@@ -1,0 +1,7 @@
+---
+- name: Install ufw dependencies
+  apt:
+    name: "{{ item }}"
+    state: "latest"
+    update_cache: true
+  loop: '{{ ufw_dependencies }}'

@@ -1,0 +1,20 @@
+[Unit]
+Description=Free5gc webconsole
+After=free5gc-core.target
+PartOf=free5gc-core.target
+
+[Service]
+Type=simple
+
+User=free5gc
+Group=free5gc
+
+Restart=always
+Environment=REACT_APP_HTTP_API_URL=http://0.0.0.0:5000/api
+ExecStart=/usr/bin/free5gc-webconsole -c /etc/free5gc/webconsole.yaml -l /var/log/free5gc/webconsole.log -p /etc/free5gc/public
+RestartSec=2
+ExecReload=/bin/kill -HUP $MAINPID
+
+[Install]
+WantedBy=free5gc-core.target
+

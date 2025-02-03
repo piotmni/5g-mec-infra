@@ -1,0 +1,82 @@
+---
+- name: free5gc-control-plane | ensure all required packages are installed
+  ansible.builtin.apt:
+    name: "{{ item }}"
+    state: present
+    update_cache: true
+  loop: '{{ free5gc_control_plane_required_packages }}'
+  when: control_plane_node is true
+
+- name: free5gc-user-plane | ensure all required packages are installed
+  ansible.builtin.apt:
+    name: "{{ item }}"
+    state: present
+    update_cache: true
+  loop: '{{ free5gc_user_plane_required_packages }}'
+  when: user_plane_node is true
+
+- name: free5gc | create group
+  ansible.builtin.group:
+    name: free5gc
+
+- name: free5gc | create user
+  ansible.builtin.user:
+    name: free5gc
+    group: free5gc
+
+- name: free5gc | create config dir
+  ansible.builtin.file:
+    owner: free5gc
+    group: free5gc
+    mode: 0755
+    path: /etc/free5gc/
+    state: directory
+
+- name: free5gc | create log dir
+  ansible.builtin.file:
+    owner: free5gc
+    group: free5gc
+    mode: 0755
+    path: /var/log/free5gc
+    state: directory
+
+- name: free5gc | check if already installed
+  stat:
+    path: /opt/free5gc/bin
+  register: free5g_bin
+
+- block:
+    - name: free5gc | clone git repository
+      ansible.builtin.git:
+        repo: 'https://github.com/free5gc/free5gc.git'
+        dest: /opt/free5gc/
+        clone: yes
+        recursive: yes
+        version: "{{ free5gc_version }}"
+
+    - name: free5gc | make NFs
+      make:
+        chdir: /opt/free5gc/
+        target: "{{ item }}"
+      environment:
+        GOPATH: /opt/gopath
+        GOROOT: /usr/local/go
+        PATH: /sbin:/usr/sbin:/bin:/usr/bin:/usr/local/bin:/usr/local/go/bin
+      loop: "{{ user_plane_nfs + control_plane_nfs }}"
+
+    - name: free5gc | copy files
+      ansible.builtin.copy:
+        mode: 0755
+        remote_src: yes
+        src: /opt/free5gc/bin/{{ item }}
+        dest: /usr/bin/free5gc-{{ item }}
+      loop: "{{ user_plane_nfs + control_plane_nfs }}"
+  when: free5g_bin.stat.exists == False
+
+- name: free5gc | copy TLS
+  ansible.builtin.copy:
+    remote_src: yes
+    src: /opt/free5gc/config/TLS
+    dest: /etc/free5gc/
+    owner: free5gc
+    group: free5gc

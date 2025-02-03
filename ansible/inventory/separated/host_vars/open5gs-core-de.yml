@@ -1,0 +1,20 @@
+---
+wireguard_address: "10.50.0.1"
+
+amf_ngap_address: "{{ wireguard_address }}"
+smf_address: "{{ internal }}"
+pcf_sbi_address: 127.0.0.13
+
+iptables_filter_rules:
+  - {port: 38412, action: 'ACCEPT', protocol: 'sctp', interface: 'wg0', chain: 'INPUT' }
+
+subscribers:
+  - imsi: 999700000000001
+    dn: internet-waw
+  - imsi: 999700000000002
+    dn: internet-waw
+  - imsi: 999700000000003
+    dn: internet-bhs
+  - imsi: 999700000000004
+    dn: internet-bhs
+

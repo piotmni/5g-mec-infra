@@ -1,0 +1,24 @@
+[Unit]
+Description=Free5gc udr NF
+PartOf=free5gc-core.target
+After=free5gc-core.target
+After=free5gc-nrfd.service
+Requires=free5gc-nrfd.service
+
+[Service]
+Type=simple
+
+User=free5gc
+Group=free5gc
+
+Restart=always
+
+# this is dumb but for now let it stay
+ExecStartPost=/bin/sleep 1
+ExecStart=/usr/bin/free5gc-udr -c /etc/free5gc/udr.yaml -l /var/log/free5gc/udr.log
+RestartSec=2
+ExecReload=/bin/kill -HUP $MAINPID
+
+[Install]
+WantedBy=free5gc-core.target
+

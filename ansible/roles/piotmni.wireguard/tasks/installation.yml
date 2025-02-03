@@ -1,0 +1,36 @@
+---
+- name: Gather instance facts
+  setup:
+
+- name: Install wireguard package
+  apt:
+    name: "wireguard"
+    state: present
+
+- name: Enable WireGuard kernel module
+  modprobe:
+    name: wireguard
+    state: present
+  register: wireguard__register_module_enabled
+  until:  wireguard__register_module_enabled is succeeded
+  retries: 10
+  delay: 10
+  failed_when: wireguard__register_module_enabled is failure
+
+- name: Register if config/private key already exists on target host
+  stat:
+    path: "{{ wireguard_remote_directory }}/server_private.key"
+  register: wireguard__register_config_file
+
+- name: Create WireGuard configuration directory
+  file:
+    dest: "{{ wireguard_remote_directory }}"
+    state: directory
+    mode: 0700
+  when: not wireguard__register_config_file.stat.exists
+
+- name: generate priv and pub key
+  shell: "wg genkey | tee /etc/wireguard/server_private.key | wg pubkey | tee /etc/wireguard/server_public.key"
+  when: not wireguard__register_config_file.stat.exists
+
+

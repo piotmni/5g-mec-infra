@@ -1,0 +1,46 @@
+- name: Stop 5g user plane services if control plane
+  ansible.builtin.systemd:
+    name: "open5gs-{{ item }}d"
+    state: stopped
+    enabled: no
+  loop: '{{ services_5g_user_plane }}'
+  tags: configure
+
+- name: Copy configs
+  ansible.builtin.template:
+    src: "configs/{{ item }}.yaml"
+    dest: "/etc/open5gs/{{ item }}.yaml"
+  loop: '{{ services_5g_control_plane }}'
+  notify: 'restart {{ item }}'
+  tags: configure
+
+- name: Copy systemd units
+  ansible.builtin.template:
+    src: "services/open5gs-{{ item }}d.service"
+    dest: "/lib/systemd/system/open5gs-{{ item }}d.service"
+  loop: '{{ services_5g_control_plane }}'
+  notify: daemon_reload
+  tags: configure
+
+- name: Enable and start control plane services
+  ansible.builtin.systemd:
+    name: "open5gs-{{ item }}d"
+    state: started
+    enabled: yes
+  loop: '{{ services_5g_control_plane }}'
+  tags: configure
+
+- name: Add dbctl script
+  ansible.builtin.template:
+    dest: /usr/bin/open5gs-dbctl
+    src: open5gs-dbctl
+    owner: root
+    group: root
+    mode: u=rwx,g=rx,o=rx
+  tags: configure
+
+- include_tasks: add_admin_user.yml
+  tags: configure
+#
+- include_tasks: add_subscriber.yml
+  tags: configure

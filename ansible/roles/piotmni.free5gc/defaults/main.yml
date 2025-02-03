@@ -1,0 +1,70 @@
+---
+
+free5gc_version: v3.2.1
+gtp5g_version: v0.8.1
+
+
+control_plane_node: False
+user_plane_node: False
+
+free5gc_control_plane_required_packages:
+  - mongodb
+  - wget
+  - git
+  - make
+  - cmake
+
+free5gc_user_plane_required_packages:
+  - git
+  - gcc
+  - g++
+  - cmake
+  - make
+  - autoconf
+  - libtool
+  - pkg-config
+  - libmnl-dev
+  - libyaml-dev
+  - "linux-headers-{{ ansible_kernel }}"
+
+user_plane_nfs:
+  - upf
+
+control_plane_nfs:
+  - nrf
+  - udr
+  - udm
+  - ausf
+  - nssf
+  - amf
+  - pcf
+  - smf
+#  - n3iwf
+
+amf_ngap_address: 127.0.0.18
+upf_address_gtpu: 127.0.0.8
+upf_address_pfcp: 127.0.0.8
+smf_address: 127.0.0.1
+
+# for nat purpsoses
+free5gc_dnns:
+  default:
+    - addr: 10.60.0.0/24
+      name: internet
+
+
+free5gc_upf_ip_address:
+  default:
+     pfcp: 127.0.0.8
+     gtpu: 10.20.0.11
+
+
+free5gc_upf_configs:
+  default:
+    - sNssai:
+        sst: 1
+        sd: 010203
+      dnnUpfInfoList:
+        - dnn: internet
+          pools:
+            - cidr: 10.60.0.0/24

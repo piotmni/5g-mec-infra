@@ -1,0 +1,24 @@
+---
+- name: Configure NAT rules and make them persistent after reboot
+  blockinfile:
+    path: /etc/ufw/after.rules
+    marker: "{mark}"
+    marker_begin: "# ANSIBLE NAT MANAGED"
+    marker_end: "# END ANSIBLE NAT MANAGED"
+    block: |
+      *nat
+      :PREROUTING ACCEPT - [0:0]
+      :POSTROUTING ACCEPT - [0:0]
+      # End required lines
+      {{nat_rules_generate}}
+      COMMIT
+    state: present
+  when: '{{ iptables_nat_rules | length > 0 }}'
+  notify: reload ufw
+
+
+- name: Execute iptables rules
+  shell: iptables -A {{ item.chain }} -p {{ item.protocol }} -i {{ item.interface }} --dport {{ item.port }} -j {{ item.action }}
+  loop: "{{ iptables_filter_rules }}"
+  when: '{{ iptables_filter_rules | length > 0 }}'
+  notify: reload ufw

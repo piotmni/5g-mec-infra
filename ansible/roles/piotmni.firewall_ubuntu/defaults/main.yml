@@ -1,0 +1,30 @@
+### defaults for ufw
+ufw_default_incoming_policy: deny
+ufw_default_outgoing_policy: allow
+
+ufw_logging: 'off'
+
+ufw_dependencies:
+  - ufw
+  - iproute2
+  - procps
+
+
+iptables_filter_rules: []
+#  - {port: 38412, action: 'ACCEPT', protocol: 'sctp', interface: 'public', chain: 'INPUT'}
+
+iptables_nat_rules: []
+#  - {chain: 'POSTROUTING', action: 'MASQUERADE', source_addr: '10.45.0.0/16', out_interface: 'ogstun',  negate_out_interface: true}
+
+
+# must be | because it saves new lines
+filter_rules_generate: |
+  {%- for rule in iptables_filter_rules %}
+  -A ufw-after-input -p {{ rule.protocol }} --dport {{ rule.port }} -j {{ rule.action }} -i {%- if rule.interface == 'private' -%} {{ ansible_local.network_interfaces.private_interface }}{%- elif rule.interface == 'public' -%} {{ ansible_local.network_interfaces.public_interface }}{%- else -%} {{ rule.interface }}{% endif %}
+  {%- endfor %}
+
+
+nat_rules_generate: |
+  {% for rule in iptables_nat_rules %}
+  -A {{ rule.chain }} -s {{ rule.source_addr }} {{ '!' if rule.negate_out_interface }} -o {{ rule.out_interface }} -j {{ rule.action }}
+  {% endfor %}

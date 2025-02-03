@@ -1,0 +1,39 @@
+---
+- hosts:
+    - nomad-client
+  become: yes
+  serial: 3
+  vars_files:
+#    - ../vars/nomad.yml
+    - ../vars/secrets.yml
+  vars:
+    network_enable_ip_forwarding: yes
+    firewall_ports:
+      - {to_port: 4646, zone: home}
+      - {interface: docker0}
+
+      - { to_port: 53, zone: home } # dns for consul connect
+      - { to_port: 53, zone: home, proto: 'udp' } # dns for consul connect
+      - { to_port: 8300, zone: home } # consul LAN Serf
+      - { to_port: 8301, zone: home } # consul LAN Serf
+      - { to_port: 8301, zone: home, proto: 'udp' } # consul LAN Serf
+      - { to_port: 8302, zone: home } # consul WAN Serf
+      - { to_port: 8302, zone: home, proto: 'udp' } # consul WAN Serf
+      - { to_port: 8500, zone: home } # consul http port
+      - { to_port: 80, zone: home } # traefik http port
+      - { to_port: 443, zone: home } # traefik https port
+      - { to_port: 8081, zone: home } # traefik dashboard port
+
+  roles:
+    - {role: piotmni.initial_setup, tags: initial_setup}
+
+    - {role: piotmni.network_ubuntu, tags: [network]}
+    - {role: piotmni.firewall_ubuntu, tags: [network, firewall]}
+    - {role: piotmni.hosts, tags: [network, hosts]}
+    - {role: piotmni.resolve, tags: [network, resolve]}
+
+    - {role: geerlingguy.docker, tags: docker}
+    - {role: piotmni.consul, tags: consul}
+    - {role: piotmni.nomad, tags: nomad}
+
+    - {role: piotmni.telegraf, tags: telegraf}

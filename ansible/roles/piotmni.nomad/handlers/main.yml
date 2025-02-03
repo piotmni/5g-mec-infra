@@ -1,0 +1,20 @@
+- name: reload_nomad
+  systemd:
+    name: nomad
+    state: reloaded
+  when:
+    - skip_handlers | default("False") == "False"
+- name: restart_nomad
+  systemd:
+    name: nomad
+    state: restarted
+    daemon_reload: yes
+  when:
+    - skip_handlers | default("False") == "False"
+- name: enable_nomad
+  systemd:
+    name: nomad.service
+    daemon_reload: yes
+    enabled: yes
+  when:
+    - skip_handlers | default("False") == "False"

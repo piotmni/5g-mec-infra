@@ -1,0 +1,23 @@
+---
+- name: Register if system was already upgraded
+  stat:
+    path: /opt/updated
+  register: updated
+
+- name: Update all packages if system was not already upgraded
+  apt:
+    update_cache: yes
+    upgrade: dist
+  when: 'not updated["stat"]["exists"]'
+
+- name: Mark system as upgraded
+  file:
+    path: /opt/updated
+    state: touch
+  when: 'not updated["stat"]["exists"]'
+
+- name: Install default packages
+  apt:
+    name: '{{ item }}'
+    update_cache: yes
+  loop: '{{ packages }}'

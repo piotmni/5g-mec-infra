@@ -1,0 +1,30 @@
+# read private key file and save it to a variable
+- name: Read WireGuard private key
+  slurp:
+    src: "/etc/wireguard/server_private.key"
+  register: wireguard_private_key
+
+- name: Generate WireGuard server configuration file
+  template:
+    src: etc/wireguard/wg.conf.j2
+    dest: "{{ wireguard_remote_directory }}/{{ wireguard_interface }}.conf"
+    owner: "{{ wireguard_conf_owner }}"
+    group: "{{ wireguard_conf_group }}"
+    mode: "{{ wireguard_conf_mode }}"
+  tags:
+    - wg-config
+  notify:
+    - restart_wireguard
+
+- name: Ensure legacy reload-module-on-update is absent
+  file:
+    dest: "{{ wireguard_remote_directory }}/.reload-module-on-update"
+    state: absent
+  tags:
+    - wg-config
+
+- name: Start and enable WireGuard service
+  service:
+    name: "wg-quick@{{ wireguard_interface }}"
+    state: started
+    enabled: yes

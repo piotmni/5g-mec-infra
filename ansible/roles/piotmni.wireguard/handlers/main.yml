@@ -1,0 +1,9 @@
+---
+- name: restart_wireguard
+  service:
+    name: "wg-quick@{{ wireguard_interface }}"
+    state: "{{ item }}"
+  loop:
+    - stopped
+    - started
+

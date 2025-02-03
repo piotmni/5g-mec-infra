@@ -1,0 +1,63 @@
+require 'yaml'
+servers = YAML.load_file(File.join(File.dirname(__FILE__), 'servers.yml'))
+BRIDGE_INTERFACE = "wlp2s0"
+
+Vagrant.configure("2") do |config|
+  config.vm.box = "bento/ubuntu-20.04"
+
+  # set ansible env
+  vagrant_root = File.dirname(__FILE__)
+  ENV['ANSIBLE_ROLES_PATH'] = "#{vagrant_root}/../../ansible/roles"
+
+  ue_config = {}
+  host_vars = {}
+
+  servers_length = servers.length
+
+  servers.each_index do |s_idx|
+    server = servers[s_idx]
+
+    is_last = s_idx + 1 == servers_length
+
+    config.vm.define server['name'] do |srv|
+
+      srv.vm.hostname = server["name"]
+
+      srv.vm.provider "virtualbox" do |v|
+        v.memory = server['memory']
+        v.cpus = server['cpus']
+      end
+
+      # Set up a bridge interface
+      srv.vm.network "public_network", bridge: BRIDGE_INTERFACE, use_dhcp_assigned_default_route: false
+
+      # Construct ue_config for this server
+      ue_config[server['name']] = {
+        'supi' => "imsi-#{server['imsi']}",
+        'mcc' => '999',
+        'mnc' => '70',
+        'upf_subnet' => server['upf_subnet'],
+        'key' => '465B5CE8B199B49FAA5F0A2EE238A6BC',
+        'op' => 'E8ED289DEBA952E4283B54E88E6183CA',
+        'gnb_address' => server['gnb_address'],
+        'apn' => server['dnn'],
+        'slice' => { 'sst' => 1 }
+      }
+
+       # Set up DNS
+       host_vars[server['name']] = {"dns_address" => server['dns_address']}
+
+      # ansible provisione if is_last - make sure all servers are up before running ansible
+      if is_last
+          srv.vm.provision "ansible" do |ansible|
+            ansible.limit = "all"
+            ansible.playbook = "../../ansible/playbooks/vagrant_ueransim.yml"
+            ansible.host_vars = host_vars
+            ansible.extra_vars = {
+              'ue_config' => ue_config
+            }
+          end
+      end
+    end
+  end
+end

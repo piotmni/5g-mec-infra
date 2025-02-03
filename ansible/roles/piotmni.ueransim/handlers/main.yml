@@ -1,0 +1,20 @@
+---
+- name: daemon_reload
+  systemd:
+    daemon_reload: yes
+  when:
+    - skip_handlers | default("False") == "False"
+
+- name: restart_gnb
+  ansible.builtin.systemd:
+    name: nr-gnb
+    state: restarted
+  when:
+    - skip_handlers | default("False") == "False"
+
+- name: restart_ue
+  ansible.builtin.systemd:
+    name: nr-ue
+    state: restarted
+  when:
+    - skip_handlers | default("False") == "False"

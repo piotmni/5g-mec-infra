@@ -1,0 +1,24 @@
+---
+- name: Create config dir
+  ansible.builtin.file:
+    path: /etc/ueransim
+    state: directory
+
+- name: Copy systemd units
+  ansible.builtin.template:
+    dest: "/lib/systemd/system/nr-ue.service"
+    src: "nr-ue.service"
+  notify: daemon_reload
+
+- name: Copy ue config
+  ansible.builtin.template:
+    src: ue.yaml
+    dest: '/etc/ueransim/ue.yaml'
+  notify:
+    - restart_ue
+
+- name: Make sure systemd is started and enables
+  ansible.builtin.systemd:
+    name: nr-ue.service
+    state: started
+    enabled: yes

@@ -1,0 +1,21 @@
+---
+- name: Load ip_conntrack module
+  modprobe:
+    name: ip_conntrack
+
+- name: Set nf_conntrack_max with value {{ conntrack_max }}
+  sysctl:
+    name: net.netfilter.nf_conntrack_max
+    value: '{{ conntrack_max }}'
+    state: present
+  when: conntrack_max is defined
+
+- name: Increase conntrack hash table size
+  raw: 'echo {{ conntrack_hash_table_size }} > /sys/module/nf_conntrack/parameters/hashsize'
+  when: conntrack_hash_table_size is defined
+
+- name: Ensure conntrack hash table size is permament
+  copy:
+    content: 'options nf_conntrack hashsize={{ conntrack_hash_table_size }}'
+    dest: '/etc/modprobe.d/nf_conntrack.conf'
+  when: conntrack_hash_table_size is defined

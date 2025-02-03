@@ -1,0 +1,34 @@
+
+# Mobile Country Code value of HPLMN
+mcc: '{{ gnb_mcc }}'
+# Mobile Network Code value of HPLMN (2 or 3 digits)
+mnc: '{{ gnb_mnc }}'
+
+nci: '0x000000010'  # NR Cell Identity (36-bit)
+idLength: 32        # NR gNB ID length in bits [22...32]
+tac: 1              # Tracking Area Code
+
+linkIp: {{ gnb_link_ip }}     # gNB's local IP address for Radio Link Simulation (Usually same with local IP)
+ngapIp: {{ gnb_ngap_ip }}   # gNB's local IP address for N2 Interface (Usually same with local IP)
+gtpIp: {{ gnb_gtp_ip }}     # gNB's local IP address for N3 Interface (Usually same with local IP)
+
+# List of AMF address information
+amfConfigs:
+  - address: {{ amf_instance_address }}
+    port: 38412
+
+# List of supported S-NSSAIs by this gNB
+slices:
+# {% for host, config in ue_config.items() %}
+
+  - sst: {{ config.slice.sst }}
+#   {% if config.slice.sd is defined %}
+
+    sd: {{ config.slice.sd }}
+#   {% endif %}
+
+#{% endfor %}
+
+
+# Indicates whether or not SCTP stream number errors should be ignored.
+ignoreStreamIds: true

@@ -1,0 +1,43 @@
+---
+- name: Create group open5gs
+  ansible.builtin.group:
+    name: open5gs
+
+- name: Create user open5gs
+  ansible.builtin.user:
+    name: open5gs
+    group: open5gs
+    shell: '/bin/false'
+
+- name: Add ppa repo
+  ansible.builtin.apt_repository:
+    repo: ppa:open5gs/latest
+
+- name: Install open5gs
+  ansible.builtin.apt:
+    name: open5gs
+    state: present
+    update_cache: true
+
+- name: Stop and disable 4g specific services
+  ansible.builtin.systemd:
+    name: "open5gs-{{ item }}d"
+    state: stopped
+    enabled: no
+  loop: '{{ services_4g }}'
+
+- include_tasks: control_plane.yml
+  when:
+    - open5gs_node_type == "control" or open5gs_node_type == "full"
+    - disable_for_packer|default("False") == "False"
+  tags: configure
+
+- include_tasks: user_plane.yml
+  when:
+    - open5gs_node_type == "user" or open5gs_node_type == "full"
+    - disable_for_packer|default("False") == "False"
+  tags: configure
+
+- include_tasks: webui.yml
+  when: open5gs_node_type == "control" or open5gs_node_type == "full"
+  tags: configure

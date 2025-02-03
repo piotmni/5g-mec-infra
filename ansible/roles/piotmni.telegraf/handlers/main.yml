@@ -1,0 +1,15 @@
+---
+- name: reload_daemon
+  systemd:
+    daemon_reload: yes
+  when:
+    - skip_handlers | default("False") == "False"
+
+- name: "Restart Telegraf"
+  service:
+    name: telegraf
+    state: restarted
+    enabled: yes
+  become: yes
+  when:
+    - skip_handlers | default("False") == "False"
